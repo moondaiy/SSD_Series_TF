@@ -31,12 +31,13 @@ def parsing_configs(config_path):
             anchor_info = get_value_for_dict(config, "anchor_info")
             extract_feature_info = get_value_for_dict(config, "extract_feature_info")
             loss_info = get_value_for_dict(config, "loss_info")
+            train_info = get_value_for_dict(config, "training_info")
 
         else:
 
             raise Exception("Only Support SSD ")
 
-    return base_info, anchor_info, extract_feature_info, loss_info
+    return base_info, anchor_info, extract_feature_info, loss_info, train_info
 
 
 

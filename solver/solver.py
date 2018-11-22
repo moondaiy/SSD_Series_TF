@@ -16,25 +16,23 @@ from net.libs.getLayer import LAYERS_UPDATE_OPS_COLLECTION
 
 class Solver(object):
 
-    def __init__(self, net:"SSD_Net" , data_manager:"Data_Manager", anchors, config_info:"dict"):
+    def __init__(self, net:"SSD_Net" , data_manager:"Data_Manager", anchors, config_info:"tuple"):
 
         self.config_info   = config_info
-        self.anchor_info   = self.config_info["anchor_info"]
-        self.training_info = self.config_info["training_info"]
-        self.base_info     = self.config_info["base_info"]
-        self.loss_info     = self.config_info["loss_info"]
+        self.base_info     = self.config_info[0]
+        self.anchor_info   = self.config_info[1]
+        self.loss_info     = self.config_info[3]
+        self.training_info = self.config_info[4]
+
 
 
         self.model         = net
         self.data_provider = data_manager
 
-
         self.train_max_epoch        = self.training_info["max_epoch"]
         self.train_batch_size       = self.training_info["batch_size"]
         self.train_init_learning    = self.training_info["learn_ratio"]
-        self.train_batch_per_epoch  = self.data_provider.total_sample_number / self.train_batch_size
-
-
+        self.train_batch_per_epoch  = int(self.data_provider.total_sample_number / self.train_batch_size)
         self.optimizer_type         = self.training_info["optimizer_type"]
 
         self.epoch_start_index = 0
@@ -60,15 +58,9 @@ class Solver(object):
             #模型保存恢复和保存配置
             self.saver = tf.train.Saver(tf.global_variables(), max_to_keep=4)
 
-        # self.logitic = self.model.multibox_layer_out
-
-
 
     def train(self):
 
-        #1.恢复或加载网络参数(用于断点式训练方式)
-        #2.构建优化器
-        #3.训练开始
         with self.graph.as_default():
 
             total_localization_loss, total_classification_loss, total_loss = self.model.build_loss(self.model.multibox_layer_out,self.model.labels,self.model.total_anchor_number)
@@ -111,9 +103,10 @@ class Solver(object):
                         image_name_batch, image_batch, gt_label_batch, num_object, img_height, img_width = sess.run(self.data_provider.next_batch())
 
                         _, r_total_localization_loss, r_total_classification_loss, r_total_loss, global_step, learning_ratio = \
-                            sess.run([train_op, total_localization_loss, total_classification_loss, total_loss, self.global_step, self.train_init_learning],feed_dict={self.model.labels: gt_label_batch, self.model.inputs: image_batch, self.model.is_training: True})
+                            sess.run([train_op, total_localization_loss, total_classification_loss, total_loss, self.global_step, self.lr],feed_dict={self.model.labels: gt_label_batch, self.model.inputs: image_batch, self.model.is_training: True})
 
-                        print("Current epoch %d train total step %d learn rate is %f total loss is %f" % (epoch, global_step, learning_ratio, r_total_loss))
+                        print("Current epoch %d train total step %d learn rate is %f total loss is %f classification loss is %f" %
+                              (epoch, global_step, learning_ratio, r_total_loss, r_total_classification_loss))
 
                     self.batch_start_index = 0
 
