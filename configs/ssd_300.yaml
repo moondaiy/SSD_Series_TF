@@ -8,8 +8,8 @@ base_info:
 
 training_info:
   train_restore_flag: False
-  max_epoch: 100
-  batch_size:  5
+  max_epoch: 1000
+  batch_size:  1
   learn_ratio: 0.001
   learn_ratio_change_step:
     - 0

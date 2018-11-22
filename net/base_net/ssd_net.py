@@ -64,21 +64,12 @@ class SSD_Net(object):
 
             #[0] 保存 loc
             #[1] 保存 cls
+            # multibox_layer_out 给 计算loss的时候使用
             self.multibox_layer_out = self.build_multibox_layer(self.valid_feature_out, self.valid_feature_layer_info["extract_feature_valid_layer"], self.class_number, self.anchors_info["anchor_size"], self.anchors_info["anchor_ratios"], self.valid_feature_layer_info["extract_feature_normalization"], self.anchors_info["feature_shape"])
 
             self.net_out = self.build_net_out(self.multibox_layer_out)
 
             self.finally_box = self.build_visual_layer(self.net_out, self.anchors.astype(np.float32), self.anchors_info["prior_scaling"], self.select_threshold, self.nms_threshold)
-
-
-
-
-            # if self.train_flag == True:
-            #
-            #     if self.loss_info == None:
-            #         raise Exception("train step but loss info is None !")
-            #
-            #     self.loss = self.build_loss(self.multibox_layer_out, )
 
 
         self.session = tf.Session(graph=self.graph, config=config)  # connect

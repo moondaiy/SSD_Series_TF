@@ -18,6 +18,9 @@ def render_boxs_info_for_display(image, anchors, labels, scores, encode_box, ori
 
     for index, score in enumerate(scores):
 
+        # print("current score is %f" % (score))
+        # print("current label :" + str(labels[index]))
+
         if score > anchor_pos_iou:
 
             decode_box = boxes_np_op.decode_boxes(np.expand_dims(encode_box[index],axis=0), np.expand_dims(anchors[index], axis=0), scales)
@@ -70,8 +73,8 @@ if __name__=="__main__":
     loss_info = configs[3]
 
     ground_truth = np.array([[0.25, 0.25, 0.5,0.5, 0],
-                                         [0.5, 0.5, 0.75, 0.75, 3],
-                                         [0.3, 0.3, 0.7 , 0.7,  4]])
+                             [0.5, 0.5, 0.75, 0.75, 3],
+                             [0.3, 0.3, 0.7 , 0.7,  4]])
 
     ground_truth_tensor = tf.convert_to_tensor(ground_truth,dtype=tf.float32)
 
@@ -93,7 +96,7 @@ if __name__=="__main__":
                                anchor_offset=anchor_offset)
 
 
-    batch_size = 10
+    batch_size = 1
     image_size = 300
 
     data_provider  = data_manager.Data_Manager(tf_record_path, batch_size, is_training, image_size, all_anchors, class_numer, scale_factors, anchor_pos_iou)
@@ -123,16 +126,16 @@ if __name__=="__main__":
             image_name_batch, image_batch, gt_label_batch, num_object, img_height, img_width = \
                 sess.run((data_provider.next_batch()))
 
-            # for i in range(len(image_name_batch)):
-            #
-            #     print("-------------------------------------------------------------------------------------")
-            #
-            #     image = render_boxs_info_for_display(image_batch[i], all_anchors, gt_label_batch[i][:,:21], gt_label_batch[i][:, 25], gt_label_batch[i][:, 21:25], gt_label_batch[i][:, 26:30], scale_factors, anchor_pos_iou)
-            #
-            #     print("-------------------------------------------------------------------------------------")
-            #
-            #     cv2.imshow("boxs_info_display", image)
-            #     cv2.waitKey(0)
+            for i in range(len(image_name_batch)):
+
+                print("-------------------------------------------------------------------------------------")
+
+                image = render_boxs_info_for_display(image_batch[i], all_anchors, gt_label_batch[i][:,:21], gt_label_batch[i][:, 25], gt_label_batch[i][:, 21:25], gt_label_batch[i][:, 26:30], scale_factors, anchor_pos_iou)
+
+                print("-------------------------------------------------------------------------------------")
+
+                cv2.imshow("boxs_info_display", image)
+                cv2.waitKey(0)
 
             r_total_localization_loss, r_total_classification_loss, r_total_loss = sess.run([total_localization_loss, total_classification_loss, total_loss],feed_dict={net.labels :gt_label_batch, net.inputs : image_batch , net.is_training:True})
 

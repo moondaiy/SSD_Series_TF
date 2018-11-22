@@ -4,7 +4,8 @@ import os
 import glob
 import numpy as np
 import xml.etree.cElementTree as ET
-from help_utils import *
+import help_utils
+
 import cv2
 
 #
@@ -215,13 +216,13 @@ def do_convert_tf_record(image_path, xml_path, type, record_save_path, count):
         example = tf.train.Example(features=feature)
         writer.write(example.SerializeToString())
 
-        view_bar('Conversion progress', count + 1, xml_list_length)
+        help_utils.view_bar('Conversion progress', count + 1, xml_list_length)
 
         #测试
         counter += 1
 
-        if counter > 20:
-            print("20 Test Image is OK .....")
+        if counter >= 1:
+            print("%d Test Image is OK ....."%(counter))
             break
 
 def convert_tf_record():

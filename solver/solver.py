@@ -157,6 +157,11 @@ class Solver(object):
         if self.optimizer_type == "adam_optimizer":
 
             optimizer = tf.train.AdamOptimizer
+
+        elif self.optimizer_type == "sgd_optimizer":
+
+            optimizer = tf.train.GradientDescentOptimizer
+
         else:
             assert False , "Now Only Support Adam Optimizer"
 
