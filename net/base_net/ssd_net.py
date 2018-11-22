@@ -226,6 +226,16 @@ class SSD_Net(object):
         return label_out, box_out, score_box, select_index
 
 
+    def get_graph(self):
+
+        return self.graph
+
+
+    def get_session(self):
+
+        return self.session
+
+
 
 
 

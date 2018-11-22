@@ -7,10 +7,22 @@ base_info:
   class_number: 21
 
 training_info:
-  batch_size: 10
+  train_restore_flag: False
+  max_epoch: 10
+  batch_size:  10
+  learn_ratio: 0.0001
+  learn_ratio_change_step:
+    - 0
+    - 0.1
+  optimizer_type: adam_optimizer
+  check_points: ./checkpoint_dir
+  use_batch_norm: True
+  log_dir: ./log
+  save_image_dir: ./image_dir
 
 testint_info:
   batch_size: 10
+  save_image_dir: ./image_dir
 
 inference_info:
 
@@ -68,10 +80,6 @@ extract_feature_info:
     - 0.
     - 0.
     - 0.
-
-train_info:
-  batch_size: 5
-
 
 loss_info:
   neg_pos_ratio: 3.0

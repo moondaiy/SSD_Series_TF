@@ -11,6 +11,7 @@ import os
 from . import image_preprocess
 from net.box_utils import train_bbox_anchor_tf_op
 from net.box_utils import boxes_np_op
+import glob
 
 
 
@@ -28,6 +29,7 @@ class Data_Manager(object):
         self.class_number = class_numer
         self.anchor_scale = scale_factors
         self.anchor_pos_iou = anchor_pos_iou
+        self.total_sample_number = self.countTFRecordSampleNumber(self.data_record_path)
 
         self.img_name_batch, self.img_batch, self.gtboxes_and_label_batch_float, self.num_obs_batch, self.img_height, self.img_width = \
             self.init_data_manager(self.batch_size, self.image_size, self.is_training, self.anchors_tensor, data_format)
@@ -184,4 +186,23 @@ class Data_Manager(object):
     def next_batch(self):
 
         return self.img_name_batch, self.img_batch, self.gtboxes_and_label_batch_float, self.num_obs_batch, self.img_height, self.img_width
+
+    def countTFRecordSampleNumber(self, tfrecordPath):
+
+        tf_record_path_pattern = tfrecordPath + "/*.tfrecord"
+
+        recordList = glob.glob(tf_record_path_pattern)
+
+        if recordList is None:
+
+            raise Exception("Count The Number Of Sample Failure")
+
+        number = 0
+
+        for tfrecord in recordList:
+
+            for record in tf.python_io.tf_record_iterator(tfrecord):
+                number = number + 1
+
+        return number
 
