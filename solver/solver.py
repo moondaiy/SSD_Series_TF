@@ -93,7 +93,7 @@ class Solver(object):
                 coord = tf.train.Coordinator()  # 创建一个协调器，管理线程
                 threads = tf.train.start_queue_runners(coord=coord)  # 启动QueueRunner，此时文件名队列已经进队
 
-                last_loss = 100
+                last_loss = 5
 
                 for epoch in range(self.epoch_start_index, self.train_max_epoch):
 
@@ -107,6 +107,11 @@ class Solver(object):
 
                         print("Current epoch %d train total step %d learn rate is %f total loss is %f classification loss is %f  localization loss is %f" %
                               (epoch, global_step, learning_ratio, r_total_loss, r_total_classification_loss, r_total_localization_loss))
+
+                        if r_total_loss < last_loss:
+
+                            self.save_checkpoint(global_step, r_total_loss)
+                            last_loss = r_total_loss
 
                     self.batch_start_index = 0
 
