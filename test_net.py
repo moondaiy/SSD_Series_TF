@@ -30,7 +30,7 @@ def render_boxs_info_for_display(image, anchors, labels, scores, encode_box, ori
 
     for index, value in enumerate(select_index):
 
-        if net_score[index] > 0.6 and value == True:
+        if net_score[index] > 0.5 and value == True:
 
             valid_box = net_out[index]
             valid_score = net_score[index]
@@ -114,12 +114,12 @@ if __name__=="__main__":
         coord = tf.train.Coordinator()
         threads = tf.train.start_queue_runners(coord=coord)
 
-        for batch_number in range(1):
+        for batch_number in range(3):
 
             image_name_batch, image_batch, gt_label_batch, num_object, img_height, img_width = \
                 sess.run((data_provider.next_batch()))
 
-            label_out, box_out, score_box, select_index = sess.run(model.finally_box, feed_dict={model.inputs:image_batch , model.is_training: False, model.select_threshold : 0.5, model.nms_threshold : 0.6})
+            label_out, box_out, score_box, select_index = sess.run(model.finally_box, feed_dict={model.inputs:image_batch , model.is_training: False, model.select_threshold : 0.6, model.nms_threshold : 0.6})
 
             for i in range(len(image_name_batch)):
 
