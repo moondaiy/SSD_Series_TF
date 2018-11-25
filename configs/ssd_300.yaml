@@ -57,10 +57,10 @@ anchor_info:
     - 100
     - 300
   prior_scaling:
-    - 0.1
-    - 0.1
-    - 0.2
-    - 0.2
+    - 10.
+    - 10.
+    - 5.
+    - 5.
   anchor_offset: 0.5
   anchor_pos_iou_threshold: 0.5
 

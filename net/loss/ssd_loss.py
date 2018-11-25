@@ -170,7 +170,7 @@ def build_ssd_loss(logistic_tensor, ground_truth_box_label_scores_tensor, total_
         current_valid_classification_index_weights_stop = tf.stop_gradient(current_valid_classification_index_weights)
         cls_loss = build_classification_loss(logistic_encode_label, current_gt_label, current_valid_classification_index_weights_stop)
 
-        total_localization_loss += loc_loss * alpha
+        total_localization_loss += loc_loss
         total_classification_loss += cls_loss
 
         i = i + 1

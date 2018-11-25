@@ -14,7 +14,9 @@ from net.base_net import ssd_net
 import cv2
 
 
-def render_boxs_info_for_display(image, anchors, labels, scores, encode_box, original_ground_truth, scales, anchor_pos_iou = 0):
+np.set_printoptions(suppress = True)
+
+def render_boxs_info_for_display(image, anchors, labels, scores, encode_box, original_ground_truth, scales, net_out, anchor_pos_iou = 0):
 
     for index, score in enumerate(scores):
 
@@ -22,6 +24,9 @@ def render_boxs_info_for_display(image, anchors, labels, scores, encode_box, ori
         # print("current label :" + str(labels[index]))
 
         if score > anchor_pos_iou:
+
+            print("encode gt box is  " + str(encode_box[index]))
+            print("net out encode is " + str(net_out[index]))
 
             decode_box = boxes_np_op.decode_boxes(np.expand_dims(encode_box[index],axis=0), np.expand_dims(anchors[index], axis=0), scales)
 
@@ -126,20 +131,34 @@ if __name__=="__main__":
             image_name_batch, image_batch, gt_label_batch, num_object, img_height, img_width = \
                 sess.run((data_provider.next_batch()))
 
-            for i in range(len(image_name_batch)):
+            # for i in range(len(image_name_batch)):
+            #
+            #     print("-------------------------------------------------------------------------------------")
+            #
+            #     image = render_boxs_info_for_display(image_batch[i], all_anchors, gt_label_batch[i][:,:21], gt_label_batch[i][:, 25], gt_label_batch[i][:, 21:25], gt_label_batch[i][:, 26:30], scale_factors, anchor_pos_iou)
+            #
+            #     print("-------------------------------------------------------------------------------------")
+            #
+            #     cv2.imshow("boxs_info_display", image)
+            #     cv2.waitKey(0)
 
-                print("-------------------------------------------------------------------------------------")
+            r_total_localization_loss, r_total_classification_loss, r_total_loss, r_localization  = sess.run([total_localization_loss, total_classification_loss, total_loss , net.net_out],feed_dict={net.labels :gt_label_batch, net.inputs : image_batch , net.is_training:True})
 
-                image = render_boxs_info_for_display(image_batch[i], all_anchors, gt_label_batch[i][:,:21], gt_label_batch[i][:, 25], gt_label_batch[i][:, 21:25], gt_label_batch[i][:, 26:30], scale_factors, anchor_pos_iou)
+            # for i in range(len(image_name_batch)):
+            #
+            #     print("-------------------------------------------------------------------------------------")
+            #
+            #     image = render_boxs_info_for_display(image_batch[i], all_anchors, gt_label_batch[i][:,:21], gt_label_batch[i][:, 25], gt_label_batch[i][:, 21:25], gt_label_batch[i][:, 26:30], scale_factors, r_localization[i][:,21:25], anchor_pos_iou)
+            #
+            #     print("-------------------------------------------------------------------------------------")
+            #
+            #     cv2.imshow("boxs_info_display", image)
+            #     cv2.waitKey(0)
 
-                print("-------------------------------------------------------------------------------------")
 
-                cv2.imshow("boxs_info_display", image)
-                cv2.waitKey(0)
-
-            r_total_localization_loss, r_total_classification_loss, r_total_loss = sess.run([total_localization_loss, total_classification_loss, total_loss],feed_dict={net.labels :gt_label_batch, net.inputs : image_batch , net.is_training:True})
 
             print("localization loss is %f   classification loss  is %f  total loss is %f"%(r_total_localization_loss, r_total_classification_loss, r_total_loss))
+
 
 
 

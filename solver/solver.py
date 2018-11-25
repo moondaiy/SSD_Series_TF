@@ -73,14 +73,14 @@ class Solver(object):
 
                         optimizer = self.get_optimizer()
 
-                        train_op = optimizer(learning_rate=self.train_init_learning).minimize(total_localization_loss, global_step=self.global_step)
+                        train_op = optimizer(learning_rate=self.train_init_learning).minimize(total_loss, global_step=self.global_step)
                 else:
 
                     with tf.control_dependencies(tf.get_collection(LAYERS_UPDATE_OPS_COLLECTION)):
 
                         optimizer = self.get_optimizer()
 
-                        train_op = optimizer(learning_rate=self.train_init_learning).minimize(total_localization_loss, global_step=self.global_step)
+                        train_op = optimizer(learning_rate=self.train_init_learning).minimize(total_loss, global_step=self.global_step)
 
             with self.session.as_default() as sess:
 
@@ -105,8 +105,8 @@ class Solver(object):
                         _, r_total_localization_loss, r_total_classification_loss, r_total_loss, global_step, learning_ratio = \
                             sess.run([train_op, total_localization_loss, total_classification_loss, total_loss, self.global_step, self.lr],feed_dict={self.model.labels: gt_label_batch, self.model.inputs: image_batch, self.model.is_training: True})
 
-                        print("Current epoch %d train total step %d learn rate is %f total loss is %f classification loss is %f" %
-                              (epoch, global_step, learning_ratio, r_total_loss, r_total_classification_loss))
+                        print("Current epoch %d train total step %d learn rate is %f total loss is %f classification loss is %f  localization loss is %f" %
+                              (epoch, global_step, learning_ratio, r_total_loss, r_total_classification_loss, r_total_localization_loss))
 
                     self.batch_start_index = 0
 
