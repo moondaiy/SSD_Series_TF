@@ -81,7 +81,7 @@ class Data_Manager(object):
         #随机的采样
         #经过随机采样后的形成的box
         image_tensor, labels, bboxes, distort_bbox =\
-            image_preprocess.sample_distorted_bounding_box_crop(img, tf.reshape(gt_box_and_label_tensor[:,4], shape=[-1,1]), gt_box_and_label_tensor[:,:4] ,min_object_covered=0.05,aspect_ratio_range=(1.0, 1.0))
+            image_preprocess.sample_distorted_bounding_box_crop(img, tf.reshape(gt_box_and_label_tensor[:,4], shape=[-1,1]), gt_box_and_label_tensor[:,:4] ,min_object_covered=0.5, area_range=(0.5, 1.0), aspect_ratio_range=(0.75, 1.33))
 
         #随机左右翻转操作
         #此时box 坐标会变化
