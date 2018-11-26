@@ -118,8 +118,12 @@ def encode_boxes(unencode_boxes, reference_boxes, scale_factors=None):
 
     t_xcenter = (x_center - reference_xcenter) / reference_w
     t_ycenter = (y_center - reference_ycenter) / reference_h
-    t_w = tf.log(w / reference_w)
-    t_h = tf.log(h / reference_h)
+
+    # t_w = tf.log(w / reference_w)
+    # t_h = tf.log(h / reference_h)
+    #否则会出现nan的情况
+    t_w = tf.log(tf.clip_by_value(w / reference_w, 1e-8, 1000.0))
+    t_h = tf.log(tf.clip_by_value(h / reference_h, 1e-8, 1000.0))
 
     if scale_factors:
         t_xcenter *= scale_factors[0]
