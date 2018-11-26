@@ -91,11 +91,11 @@ if __name__=="__main__":
     anchor_info           = configs[1]
     extract_feature_info  = configs[2]
     loss_info             = configs[3]
-    train_info            = configs[4]
+    test_info            = configs[4]
 
     anchor = Anchor(anchor_info, base_info)
 
-    data_provider = Data_Manager(FLAGS.tf_record_path, train_info["batch_size"], base_info["train_step"],
+    data_provider = Data_Manager(FLAGS.tf_record_path, test_info["batch_size"], base_info["train_step"],
                                  base_info["base_net_size"], anchor.get_anchors(), base_info["class_number"],
                                  anchor_info["prior_scaling"], anchor_info["anchor_pos_iou_threshold"])
 

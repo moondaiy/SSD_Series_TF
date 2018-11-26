@@ -20,9 +20,10 @@ training_info:
   log_dir: ./log
   save_image_dir: ./image_dir
 
-testint_info:
+testing_info:
   batch_size: 10
   save_image_dir: ./image_dir
+  check_points: ./checkpoint_dir
 
 inference_info:
 

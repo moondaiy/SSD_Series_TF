@@ -24,20 +24,24 @@ def parsing_configs(config_path):
 
         base_info = get_value_for_dict(config, "base_info")
         net_name = get_value_for_dict(base_info, "net_name")
-        # base_net_size = get_value_for_dict(base_info, "base_net_size")
+        train_step = get_value_for_dict(base_info, "train_step")
 
         if net_name == "ssd":
 
             anchor_info = get_value_for_dict(config, "anchor_info")
             extract_feature_info = get_value_for_dict(config, "extract_feature_info")
             loss_info = get_value_for_dict(config, "loss_info")
-            train_info = get_value_for_dict(config, "training_info")
+
+            if train_step == True:
+                infos = get_value_for_dict(config, "training_info")
+            else:
+                infos = get_value_for_dict(config, "testing_info")
 
         else:
 
             raise Exception("Only Support SSD ")
 
-    return base_info, anchor_info, extract_feature_info, loss_info, train_info
+    return base_info, anchor_info, extract_feature_info, loss_info, infos
 
 
 
