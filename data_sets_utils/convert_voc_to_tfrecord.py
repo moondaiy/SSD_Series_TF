@@ -148,13 +148,13 @@ def read_xml_gtbox_and_label(xml_path):
                     for node in child_item:
 
                         if node.tag == "xmax":
-                            xmax = int(node.text)
+                            xmax = int(float(node.text))
                         if node.tag == "xmin":
-                            xmin = int(node.text)
+                            xmin = int(float(node.text))
                         if node.tag == "ymax":
-                            ymax = int(node.text)
+                            ymax = int(float(node.text))
                         if node.tag == "ymin":
-                            ymin = int(node.text)
+                            ymin = int(float(node.text))
 
                     tmp_box.append(xmin)
                     tmp_box.append(ymin)
@@ -221,9 +221,9 @@ def do_convert_tf_record(image_path, xml_path, type, record_save_path, count):
         #测试
         counter += 1
 
-        if counter >= 10:
-            print("%d Test Image is OK ....."%(counter))
-            break
+        # if counter >= 10:
+        #     print("%d Test Image is OK ....."%(counter))
+        #     break
 
 def convert_tf_record():
 
@@ -235,7 +235,7 @@ def convert_tf_record():
 
         do_convert_tf_record(image_path, xml_path, type, FLAGS.train_save_path, 0)
 
-        break
+
 
 
 
