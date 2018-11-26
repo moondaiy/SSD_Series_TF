@@ -10,7 +10,6 @@ def get_value_for_dict(dict ,key):
     return dict.get(key, None)
 
 
-
 def parsing_configs(config_path):
 
     with open(config_path, "r") as f:
