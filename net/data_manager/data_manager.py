@@ -142,7 +142,7 @@ class Data_Manager(object):
         else:
 
             img_name, distort_image_tensor, gt_box_and_label_tensor, num_objects, img_height, img_width = \
-                self.process_image_for_testing(filename_queue, image_size, data_format)
+                self.process_image_for_training(filename_queue, image_size, data_format)
 
 
 
