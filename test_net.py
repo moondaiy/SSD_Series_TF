@@ -13,6 +13,7 @@ import cv2
 from test_utils.save_and_restore import restore_model
 from test_utils.display_tools import render_boxs_info_for_display
 import time
+import numpy as np
 
 
 
@@ -78,7 +79,7 @@ if __name__=="__main__":
 
                 print("-------------------------------------------------------------------------------------")
 
-                cv2.imshow("boxs_info_display", image)
+                cv2.imshow("boxs_info_display", image.astype(np.uint8))
                 cv2.waitKey(0)
 
 

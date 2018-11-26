@@ -52,11 +52,11 @@ def render_rectangle_box(image, box, colour = (255, 255, 255), offset = 0, thick
 
     height,width, channel = image.shape
 
-    y_start = int(height * box[0]) + offset
-    x_start = int(width  * box[1]) + offset
+    y_start = int(height * box[0]) + offset if int(height * box[0]) + offset > 0 else 0
+    x_start = int(width  * box[1]) + offset if int(width  * box[1]) + offset > 0 else 0
 
-    y_end = int(height * box[2]) + offset
-    x_end = int(width  * box[3]) + offset
+    y_end = int(height * box[2]) + offset if int(height * box[2]) + offset <  height else height - 1
+    x_end = int(width  * box[3]) + offset if int(width  * box[3]) + offset <  width  else width - 1
 
     image = cv2.rectangle(image,(x_start,y_start), (x_end,y_end), color=colour, thickness= thickness)
 

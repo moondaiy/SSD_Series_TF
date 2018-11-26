@@ -92,29 +92,15 @@ class Data_Manager(object):
                                                                           method=tf.image.ResizeMethod.BILINEAR,
                                                                           align_corners=False)
 
+        # #随机进行对图片的修正 ,像素变更为0 到 1之间的类型
         image_tensor = image_preprocess.convert_image_format(image_tensor)
 
-        # #随机进行对图片的修正 ,像素变更为0 到 1之间的类型
         image_tensor = image_preprocess.random_adjust_image_pixes(image_tensor)
 
         image_tensor = image_preprocess.convert_image_format(image_tensor,type="0_255")
 
         #去中心化操作
         image_tensor = image_preprocess.image_whitened(image_tensor)
-
-        image_tensor = image_preprocess.random_adjust_image_pixes(image_tensor)
-
-        # img = img - tf.constant([103.939, 116.779, 123.68])
-        #
-        #对于训练阶段和实际使用阶段的话. 图像预处理策略是不同的
-        # if is_training:
-        #
-        #     img, gtboxes_and_label = image_preprocess.random_flip_left_right(img_tensor=img, gtboxes_and_label=gtboxes_and_label)
-        #
-        # else:
-        #
-        #     img, gtboxes_and_label = image_preprocess.short_side_resize(img_tensor=img, gtboxes_and_label=gtboxes_and_label,
-        #                                                                 target_shortside_len=image_size)
 
         #是否转换
         if data_format == "NCHW":
@@ -129,7 +115,31 @@ class Data_Manager(object):
 
 
     def process_image_for_testing(self,filename_queue, image_size, data_format):
-        pass
+
+        #读一张图片的信息
+        img_name, img, gtboxes_and_label, num_objects, img_height, img_width = self.read_single_example_and_decode(filename_queue)
+
+        image_tensor = img
+
+        #box坐标信息 转换成 相对于图像 宽度和高度的信息
+        #gt_box_and_label_tensor ymin xmin ymax xmax 相对原始宽度和高度
+        gt_box_and_label_tensor = image_preprocess.box_info_normilization(gtboxes_and_label, img_height, img_width)
+
+        #在最后一个步骤进行resize操作
+        image_tensor = image_preprocess.resize_image_with_fixed_size(image_tensor, image_size, image_size,
+                                                                          method=tf.image.ResizeMethod.BILINEAR,
+                                                                          align_corners=False)
+
+        #去中心化操作
+        image_tensor = image_preprocess.image_whitened(image_tensor)
+
+        if data_format == "NCHW":
+
+            image_tensor = tf.transpose(image_tensor, (2,0,1))
+
+        return img_name, image_tensor, gt_box_and_label_tensor, num_objects, img_height, img_width
+
+
 
     def read_and_prepocess_single_img(self, filename_queue, image_size, is_training=True, data_format ="NHWC"):
 
@@ -141,7 +151,7 @@ class Data_Manager(object):
         else:
 
             img_name, distort_image_tensor, gt_box_and_label_tensor, num_objects, img_height, img_width = \
-                self.process_image_for_training(filename_queue, image_size, data_format)
+                self.process_image_for_testing(filename_queue, image_size, data_format)
 
 
 
