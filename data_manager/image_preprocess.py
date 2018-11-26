@@ -5,9 +5,7 @@ from __future__ import print_function
 from __future__ import division
 
 import tensorflow as tf
-import numpy as np
-from ..box_utils.boxes_tf_op import box_filter_with_iou_for_preprocess
-from ..box_utils.boxes_tf_op import clip_boxes_to_img_boundaries
+from net.box_utils.boxes_tf_op import clip_boxes_to_img_boundaries
 from tensorflow.python.ops import control_flow_ops
 
 

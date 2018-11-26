@@ -6,7 +6,7 @@ from __future__ import print_function
 
 import tensorflow as tf
 from net.base_net.ssd_net import SSD_Net
-from net.data_manager.data_manager import Data_Manager
+from data_manager.data_manager import   Data_Manager
 from configs.configs import parsing_configs
 from anchor.Anchor import Anchor
 import cv2

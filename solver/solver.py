@@ -6,7 +6,7 @@ from __future__ import print_function
 import os
 import tensorflow as tf
 from net.base_net.ssd_net import SSD_Net
-from net.data_manager.data_manager import Data_Manager
+from data_manager.data_manager import  Data_Manager
 from tools.model_restore import do_restore_ckpt
 from tools.model_restore import do_meta_file_exist
 import math

@@ -10,7 +10,6 @@ import os
 
 from . import image_preprocess
 from net.box_utils import train_bbox_anchor_tf_op
-from net.box_utils import boxes_np_op
 import glob
 
 
