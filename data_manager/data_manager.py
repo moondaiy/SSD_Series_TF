@@ -101,7 +101,7 @@ class Data_Manager(object):
         image_tensor = image_preprocess.convert_image_format(image_tensor,type="0_255")
 
         #去中心化操作
-        # image_tensor = image_preprocess.image_whitened(image_tensor)
+        image_tensor = image_preprocess.image_whitened(image_tensor)
 
         #是否转换
         if data_format == "NCHW":
@@ -162,7 +162,7 @@ class Data_Manager(object):
 
     def encode_ground_truth_box_label_for_train(self, anchors_tensor, anchor_number, gtboxes_and_label_tensor, scale_factors , class_number , pos_iou_threshold = 0.5):
 
-        return train_bbox_anchor_tf_op.generate_train_encoding_labels_tf_operation(anchors_tensor, anchor_number, gtboxes_and_label_tensor[:,:4], gtboxes_and_label_tensor[:,4], scale_factors, class_number)
+        return train_bbox_anchor_tf_op.generate_train_encoding_labels_tf_operation(anchors_tensor, anchor_number, gtboxes_and_label_tensor[:,:4], gtboxes_and_label_tensor[:,4], scale_factors, class_number, pos_iou_threshold=pos_iou_threshold)
 
     def init_data_manager(self, batch_size, image_size, is_training, anchors, data_format):
 
