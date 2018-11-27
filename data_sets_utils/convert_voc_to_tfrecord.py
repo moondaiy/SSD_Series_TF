@@ -221,7 +221,7 @@ def do_convert_tf_record(image_path, xml_path, type, record_save_path, count):
         #测试
         counter += 1
 
-        # if counter >= 10:
+        # if counter >= 20:
         #     print("%d Test Image is OK ....."%(counter))
         #     break
 
@@ -234,6 +234,8 @@ def convert_tf_record():
         type = xml_path.split('/')[-2]
 
         do_convert_tf_record(image_path, xml_path, type, FLAGS.train_save_path, 0)
+
+        # break
 
 
 

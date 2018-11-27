@@ -28,8 +28,8 @@ class Data_Manager(object):
         self.class_number = class_numer
         self.anchor_scale = scale_factors
         self.anchor_pos_iou = anchor_pos_iou
-        # self.total_sample_number = self.countTFRecordSampleNumber(self.data_record_path)
-        self.total_sample_number = 0
+        self.total_sample_number = self.countTFRecordSampleNumber(self.data_record_path)
+        # self.total_sample_number = 0
 
         self.img_name_batch, self.img_batch, self.gtboxes_and_label_batch_float, self.num_obs_batch, self.img_height, self.img_width = \
             self.init_data_manager(self.batch_size, self.image_size, self.is_training, self.anchors_tensor, data_format)
