@@ -57,14 +57,16 @@ def  generate_train_encoding_labels_tf_operation(anchors_tensor, total_number, u
     encoded_ground_truth_label_tensor = tf.tile(tf.expand_dims(tf.sparse_to_dense([negtive_id], [class_number], 1.0, 0.0), axis=0), multiples=[total_number, 1])
 
     encoded_ground_truth_bbox_tensor =  tf.zeros(encoded_ground_truth_bbox_shape)
-    unencode_ground_truth_bbox_tensor =  tf.zeros(encoded_ground_truth_bbox_shape) #记录原始box的信息
+
+    unencode_recoard_ground_truth_bbox_tensor =  tf.zeros(encoded_ground_truth_bbox_shape) #记录原始box的信息
+
     encodeed_scores_tensor = tf.zeros(encodeed_scores_shape)
 
-    def body(i, anchors_tensor, decoded_ground_truth_bbox_tensor, decoded_ground_truth_label_tensor, encoded_ground_truth_bbox_tensor, encoded_ground_truth_label_tensor,encodeed_scores_tensor, unencode_ground_truth_bbox_tensor):
+    def body(i, anchors_tensor, unencoded_ground_truth_bbox_tensor, unencoded_ground_truth_label_tensor, encoded_ground_truth_bbox_tensor, encoded_ground_truth_label_tensor, encodeed_scores_tensor, unencode_recoard_ground_truth_bbox_tensor):
 
-        current_label = tf.one_hot(tf.cast(decoded_ground_truth_label_tensor[i],dtype=tf.uint8), class_number, on_value=1.0)
+        current_label = tf.one_hot(tf.cast(unencoded_ground_truth_label_tensor[i], dtype=tf.uint8), class_number, on_value=1.0)
 
-        current_score = calculate_score(anchors_tensor, tf.reshape(decoded_ground_truth_bbox_tensor[i,:], shape=(-1,4)))
+        current_score = calculate_score(anchors_tensor, tf.reshape(unencoded_ground_truth_bbox_tensor[i, :], shape=(-1, 4)))
 
         #当前score 分数 大于 pos_iou_threshold 且 大于上一次的iou分数,第一个标准 是选择那些与gt iou > 0.5的anchor 作为当前Image 训练的正样本.
         #但是遇到小的物品.则会发生 没有正样本的问题.因此同时也要选择 当前gt 和anchor 中 iou 最大的那个
@@ -86,17 +88,17 @@ def  generate_train_encoding_labels_tf_operation(anchors_tensor, total_number, u
         encoded_ground_truth_label_tensor = tf.where(update_condition, tf.tile(tf.expand_dims(current_label, axis=0), multiples = [total_number, 1]), encoded_ground_truth_label_tensor)
 
         #计算encoded box
-        current_encoded_box = encode_boxes(tf.reshape(decoded_ground_truth_bbox_tensor[i,:], shape=(-1,4)), anchors_tensor, scale_factors)
+        current_encoded_box = encode_boxes(tf.reshape(unencoded_ground_truth_bbox_tensor[i, :], shape=(-1, 4)), anchors_tensor, scale_factors)
 
         #更新 encoded box
         encoded_ground_truth_bbox_tensor = tf.where(update_condition, current_encoded_box, encoded_ground_truth_bbox_tensor)
 
         #更新原始box 记录信息 ymin xmin ymax xmax
-        unencode_ground_truth_bbox_tensor = tf.where(update_condition, tf.tile(tf.reshape(decoded_ground_truth_bbox_tensor[i, :], shape=[-1, 4]), multiples=[total_number, 1]), unencode_ground_truth_bbox_tensor)
+        unencode_recoard_ground_truth_bbox_tensor = tf.where(update_condition, tf.tile(tf.reshape(unencoded_ground_truth_bbox_tensor[i, :], shape=[-1, 4]), multiples=[total_number, 1]), unencode_recoard_ground_truth_bbox_tensor)
 
         i = i + 1
 
-        return i, anchors_tensor, decoded_ground_truth_bbox_tensor, decoded_ground_truth_label_tensor, encoded_ground_truth_bbox_tensor, encoded_ground_truth_label_tensor, encodeed_scores_tensor,unencode_ground_truth_bbox_tensor
+        return i, anchors_tensor, unencoded_ground_truth_bbox_tensor, unencoded_ground_truth_label_tensor, encoded_ground_truth_bbox_tensor, encoded_ground_truth_label_tensor, encodeed_scores_tensor, unencode_recoard_ground_truth_bbox_tensor
 
 
     def condition(i, anchors_tensor, decoded_ground_truth_bbox_tensor, decoded_ground_truth_label_tensor, encoded_ground_truth_bbox_tensor, encoded_ground_truth_label_tensor, encodeed_scores_tensor, unencode_ground_truth_bbox_tensor):
@@ -109,13 +111,13 @@ def  generate_train_encoding_labels_tf_operation(anchors_tensor, total_number, u
 
     i = 0
 
-    i, anchors_tensor, unencoded_ground_truth_bbox_tensor, unencoded_ground_truth_label_tensor, encoded_ground_truth_bbox_tensor, encoded_ground_truth_label_tensor, encodeed_scores_tensor, unencode_ground_truth_bbox_tensor = \
-        tf.while_loop(condition, body, [i, anchors_tensor, unencoded_ground_truth_bbox_tensor, unencoded_ground_truth_label_tensor, encoded_ground_truth_bbox_tensor, encoded_ground_truth_label_tensor, encodeed_scores_tensor, unencode_ground_truth_bbox_tensor])
+    i, anchors_tensor, unencoded_ground_truth_bbox_tensor, unencoded_ground_truth_label_tensor, encoded_ground_truth_bbox_tensor, encoded_ground_truth_label_tensor, encodeed_scores_tensor, unencode_recoard_ground_truth_bbox_tensor = \
+        tf.while_loop(condition, body, [i, anchors_tensor, unencoded_ground_truth_bbox_tensor, unencoded_ground_truth_label_tensor, encoded_ground_truth_bbox_tensor, encoded_ground_truth_label_tensor, encodeed_scores_tensor, unencode_recoard_ground_truth_bbox_tensor])
 
 
     #生成一个tensor 用于保存最终的encoded后的 gt
     # 对于某个图片来说是 8732 * [ 当前anchor n_class(21, 0代表背景), 4个anchor所对应的encode box 值, 1 当前anchor的 score ,4 当前 gt box]
-    encode_ground_truth_box_label_tensor = tf.concat([encoded_ground_truth_label_tensor, encoded_ground_truth_bbox_tensor, encodeed_scores_tensor, unencode_ground_truth_bbox_tensor],axis=1)
+    encode_ground_truth_box_label_tensor = tf.concat([encoded_ground_truth_label_tensor, encoded_ground_truth_bbox_tensor, encodeed_scores_tensor, unencode_recoard_ground_truth_bbox_tensor], axis=1)
 
     return encode_ground_truth_box_label_tensor
 

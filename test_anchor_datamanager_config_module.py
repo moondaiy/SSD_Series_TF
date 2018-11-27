@@ -63,6 +63,34 @@ def render_rectangle_box(image, box, colour = (255, 255, 255), offset = 0, thick
     return image
 
 
+def judge_data_valid(image_name , gt_box_label, image =None, extra = None):
+
+    if np.any(np.isnan(gt_box_label)) == True:
+
+        nan_index = np.where(np.isnan(gt_box_label))
+
+        print("current image name is %s"%(image_name))
+        print(gt_box_label[nan_index[0],:])
+
+        print("***************************************")
+        if extra is not None:
+            print(extra)
+
+        current_gt_label = gt_box_label[nan_index[0],:]
+
+        if image is not None:
+
+            image = render_rectangle_box(image, current_gt_label[:, 26:30][0], colour=(255, 0, 0), offset=0, thickness=2)
+            cv2.imshow("vliad", image)
+            cv2.waitKey()
+
+
+
+
+        # print(nan_index)
+
+
+
 if __name__=="__main__":
 
 
@@ -99,7 +127,7 @@ if __name__=="__main__":
                                anchor_offset=anchor_offset)
 
 
-    batch_size = 10
+    batch_size = 16
     image_size = 300
 
     data_provider  = data_manager.Data_Manager(tf_record_path, batch_size, is_training, image_size, all_anchors, class_numer, scale_factors, anchor_pos_iou)
@@ -123,7 +151,7 @@ if __name__=="__main__":
         coord = tf.train.Coordinator()
         threads = tf.train.start_queue_runners(coord=coord)
 
-        for batch_number in range(2):
+        for batch_number in range(100):
 
             print("*****************************************************************************")
             image_name_batch, image_batch, gt_label_batch, num_object, img_height, img_width = \
@@ -137,10 +165,11 @@ if __name__=="__main__":
 
                 print("------------------------------%s  display end -------------------------------------------------------"%(image_name_batch[i]))
 
-                cv2.imshow("boxs_info_display", image)
+                cv2.imshow("boxs_info_display", image.astype(np.uint8))
                 cv2.waitKey(0)
+                judge_data_valid(image_name_batch[i], gt_label_batch[i], image_batch[i])
 
-            # r_total_localization_loss, r_total_classification_loss, r_total_loss, r_localization  = sess.run([total_localization_loss, total_classification_loss, total_loss , net.net_out],feed_dict={net.labels :gt_label_batch, net.inputs : image_batch , net.is_training:True})
+                # r_total_localization_loss, r_total_classification_loss, r_total_loss, r_localization  = sess.run([total_localization_loss, total_classification_loss, total_loss , net.net_out],feed_dict={net.labels :gt_label_batch, net.inputs : image_batch , net.is_training:True})
 
             # for i in range(len(image_name_batch)):
             #
@@ -155,7 +184,7 @@ if __name__=="__main__":
 
 
 
-            # print("localization loss is %f   classification loss  is %f  total loss is %f"%(r_total_localization_loss, r_total_classification_loss, r_total_loss))
+                # print("localization loss is %f   classification loss  is %f  total loss is %f"%(r_total_localization_loss, r_total_classification_loss, r_total_loss))
 
 
 

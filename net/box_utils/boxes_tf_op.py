@@ -8,7 +8,7 @@ import tensorflow as tf
 from .iou_tf_op import iou_calculate
 
 #target box和labels 是相关联的 以 box_refs 为参考项, 删除 iou不满足 threshold 条件的 target box
-def box_filter_with_iou_for_preprocess(box_refs, target_boxs, labels, threshold=0.1, assign_negative = False):
+def box_filter_with_iou_for_preprocess(box_refs, target_boxs, labels, threshold=0.05, assign_negative = False):
 
     #计算iou分数
     scores = iou_calculate(box_refs, target_boxs)
@@ -18,32 +18,35 @@ def box_filter_with_iou_for_preprocess(box_refs, target_boxs, labels, threshold=
     #大于0.1阈值的box都会被选择进去
     mask = scores > threshold
 
-    # if assign_negative == True:
-    #
-    #     #mask为 True的地方 label 为false的地方 设置为 -1
-    #     new_labels = tf.where(mask, labels, negative_label)
-    #     new_bboxes = target_boxs
-    #
-    # else:
-    #     #把不满足条件的box和对应的label删除掉
-    #     mask = tf.reshape(mask,[-1])
-    #     new_labels = tf.boolean_mask(labels, mask)
-    #     new_bboxes = tf.boolean_mask(target_boxs, mask)
+    if assign_negative == True:
 
-    new_labels = labels
-    new_bboxes = target_boxs
+        #mask为 True的地方 label 为false的地方 设置为 -1
+        new_labels = tf.where(mask, labels, negative_label)
+        new_bboxes = target_boxs
+
+    else:
+        #把不满足条件的box和对应的label删除掉
+        mask = tf.reshape(mask,[-1])
+        new_labels = tf.boolean_mask(labels, mask)
+        new_bboxes = tf.boolean_mask(target_boxs, mask)
+
+    # new_labels = labels
+    # new_bboxes = target_boxs
 
     return new_labels, new_bboxes
+
+def box_filter_with_boundary_for_preprocess(box_refs, target_boxs, labels, threshold=0.1, assign_negative = False):
+    pass
 
 #将box超过区域的部分进行截断处理
 def clip_boxes_to_img_boundaries(boxes_info):
 
-    ymin,xmin,ymax,xman = tf.split(boxes_info, 4, axis=1)
+    ymin, xmin, ymax, xmax = tf.split(boxes_info, 4, axis=1)
 
     max_xmin = tf.maximum(0.0, xmin)
     max_ymin = tf.maximum(0.0, ymin)
 
-    min_xmax = tf.minimum(1.0, xman)
+    min_xmax = tf.minimum(1.0, xmax)
     min_ymax = tf.minimum(1.0, ymax)
 
     new_box_info = tf.concat([max_ymin, max_xmin, min_ymax, min_xmax], axis=1)
@@ -119,11 +122,11 @@ def encode_boxes(unencode_boxes, reference_boxes, scale_factors=None):
     t_xcenter = (x_center - reference_xcenter) / reference_w
     t_ycenter = (y_center - reference_ycenter) / reference_h
 
-    # t_w = tf.log(w / reference_w)
-    # t_h = tf.log(h / reference_h)
+    t_w = tf.log(w / reference_w)
+    t_h = tf.log(h / reference_h)
     #否则会出现nan的情况
-    t_w = tf.log(tf.clip_by_value(w / reference_w, 1e-8, 1000.0))
-    t_h = tf.log(tf.clip_by_value(h / reference_h, 1e-8, 1000.0))
+    # t_w = tf.log(tf.clip_by_value(w / reference_w, 1e-8, 1000.0))
+    # t_h = tf.log(tf.clip_by_value(h / reference_h, 1e-8, 1000.0))
 
     if scale_factors:
         t_xcenter *= scale_factors[0]

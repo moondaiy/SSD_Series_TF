@@ -1,7 +1,7 @@
 
 base_info:
   net_name: ssd
-  train_step: False
+  train_step: True
   base_net_type: vgg
   base_net_size: 300
   class_number: 21

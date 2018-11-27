@@ -28,7 +28,8 @@ class Data_Manager(object):
         self.class_number = class_numer
         self.anchor_scale = scale_factors
         self.anchor_pos_iou = anchor_pos_iou
-        self.total_sample_number = self.countTFRecordSampleNumber(self.data_record_path)
+        # self.total_sample_number = self.countTFRecordSampleNumber(self.data_record_path)
+        self.total_sample_number = 0
 
         self.img_name_batch, self.img_batch, self.gtboxes_and_label_batch_float, self.num_obs_batch, self.img_height, self.img_width = \
             self.init_data_manager(self.batch_size, self.image_size, self.is_training, self.anchors_tensor, data_format)
@@ -81,7 +82,7 @@ class Data_Manager(object):
         #随机的采样
         #经过随机采样后的形成的box
         image_tensor, labels, bboxes, distort_bbox =\
-            image_preprocess.sample_distorted_bounding_box_crop(img, tf.reshape(gt_box_and_label_tensor[:,4], shape=[-1,1]), gt_box_and_label_tensor[:,:4] ,min_object_covered=0.5, area_range=(0.5, 1.0), aspect_ratio_range=(0.75, 1.33))
+            image_preprocess.sample_distorted_bounding_box_crop(img, tf.reshape(gt_box_and_label_tensor[:,4], shape=[-1,1]), gt_box_and_label_tensor[:,:4] ,min_object_covered=0.5, area_range=(0.75, 1.0), aspect_ratio_range=(0.75, 1.33))
 
         #随机左右翻转操作
         #此时box 坐标会变化
@@ -100,7 +101,7 @@ class Data_Manager(object):
         image_tensor = image_preprocess.convert_image_format(image_tensor,type="0_255")
 
         #去中心化操作
-        image_tensor = image_preprocess.image_whitened(image_tensor)
+        # image_tensor = image_preprocess.image_whitened(image_tensor)
 
         #是否转换
         if data_format == "NCHW":
@@ -179,13 +180,14 @@ class Data_Manager(object):
         #将label信息进行编码操作
         encode_gt_box_label_tensor = self.encode_ground_truth_box_label_for_train(self.anchors_tensor, self.anchor_number, gtboxes_and_label_float, self.anchor_scale, self.class_number, self.anchor_pos_iou)
 
+        #gtboxes_and_label_float 临时添加
         img_name_batch, img_batch, encode_gt_box_label_tensor, num_obs_batch, img_height, img_width = \
             tf.train.batch(
                            [img_name, img, encode_gt_box_label_tensor, num_obs, img_height, img_width],
                            batch_size=batch_size,
                            capacity=50,
                            num_threads=4,
-                           dynamic_pad=False)
+                           dynamic_pad=True)
 
         # img_tensor_with_bound_box_tensor = tf.image.draw_bounding_boxes(img_batch, gtboxes_and_label_batch_float[:,:4])
 

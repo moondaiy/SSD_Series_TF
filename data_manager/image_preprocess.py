@@ -6,6 +6,7 @@ from __future__ import division
 
 import tensorflow as tf
 from net.box_utils.boxes_tf_op import clip_boxes_to_img_boundaries
+from net.box_utils.boxes_tf_op import box_filter_with_iou_for_preprocess
 from tensorflow.python.ops import control_flow_ops
 
 
@@ -47,15 +48,13 @@ def sample_distorted_bounding_box_crop(image,labels,bboxes,min_object_covered=0.
 
     cropped_image.set_shape([None, None, 3])
 
-    #因为图像被crop了因此,原先的bound box坐标也需要进行变换才行
+    # #因为图像被crop了因此,原先的bound box坐标也需要进行变换才行
     translate_bboxes = box_translate(distort_bbox, bboxes)
 
+    #删除那些经过crop后和过于小的box ,这地方后续进行处理,如果 gt box已经不在 crop 后的图像中的话,则舍弃该box
+    labels , translate_bboxes = box_filter_with_iou_for_preprocess(tf.constant([[0,0,1,1]],dtype=translate_bboxes.dtype), translate_bboxes, labels, threshold=0.01, assign_negative=False)
 
-    #对齐边缘.
     translate_bboxes = clip_boxes_to_img_boundaries(translate_bboxes)
-
-    #删除那些经过crop后和过于小的box ,这地方后续进行处理
-    # filter_label , filter_box = box_filter_with_iou_for_preprocess(tf.constant([[0,0,1,1]],dtype=translate_bboxes.dtype), translate_bboxes, labels, threshold=0.01, assign_negative=False)
 
     return cropped_image, labels, translate_bboxes, distort_bbox
 
