@@ -60,16 +60,18 @@ if __name__=="__main__":
 
         for batch_number in range(3):
 
-            start_time = time.clock()
+
 
             image_name_batch, image_batch, gt_label_batch, num_object, img_height, img_width = \
                 sess.run((data_provider.next_batch()))
 
+            start_time = time.clock()
+
+            label_out, box_out, score_box, select_index = sess.run(model.finally_box, feed_dict={model.inputs:image_batch , model.is_training: False, model.select_threshold : 0.5, model.nms_threshold : 0.5})
+
             end_time = time.clock()
 
             print("Time is %f"%(end_time - start_time))
-
-            label_out, box_out, score_box, select_index = sess.run(model.finally_box, feed_dict={model.inputs:image_batch , model.is_training: False, model.select_threshold : 0.4, model.nms_threshold : 0.5})
 
             for i in range(len(image_name_batch)):
 
