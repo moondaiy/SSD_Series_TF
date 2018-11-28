@@ -257,6 +257,26 @@ def bi_lstm_layer(input, hiden_size, out_size, name, seq_length, rnnStyle= DEFAU
         return outputs
 
 
+
+def normalization_layer(input, is_train, name, type, group, is_convolution=True, moving_decay = DEFAULT_BN_MOVING_DECAY, bn_decay= DEFAULT_BN_EPSILON):
+
+    if type == "bn":
+
+        out = batch_normalization_layer(input, is_train, name, is_convolution=is_convolution, moving_decay=moving_decay, bn_decay=bn_decay)
+
+    elif type == "gn":
+
+        out = group_normalization_layer(input, name, group)
+
+    else:
+
+        raise Exception("normalization_layer only support bn and gn layer")
+
+
+    return out
+
+
+
 def batch_normalization_layer(input, is_train, name, is_convolution=True, moving_decay = DEFAULT_BN_MOVING_DECAY, bn_decay= DEFAULT_BN_EPSILON):
 
     shape = input.get_shape().as_list()[-1]  # 根据channel得到
@@ -282,6 +302,35 @@ def batch_normalization_layer(input, is_train, name, is_convolution=True, moving
         output = tf.nn.batch_normalization(input, mean, variance, beta, gamma, bn_decay)
 
         return output
+
+
+def group_normalization_layer(input, name, group):
+
+    with tf.variable_scope(name) as scope:
+
+        #和paper一样, 所以进行矩阵转换
+        input = tf.transpose(input, [0, 3, 1, 2])
+
+        #得到tensor的形状数据
+        batch_size, channel, height, width = input.get_shape().as_list()
+
+        group = min(group, channel)
+
+        input = tf.reshape(input, [batch_size, group, channel // group, height, width])
+
+        mean, var = tf.nn.moments(input, [2, 3, 4], keep_dims=True)
+
+        input = (input - mean) / tf.sqrt(var + 0.0000001)
+
+        beta, gamma = get_group_normalization_variable([channel])
+
+        gamma = tf.reshape(gamma, [1, channel, 1, 1])
+        beta  = tf.reshape(beta,  [1, channel, 1, 1])
+
+        output = tf.reshape(input, [batch_size, channel, height, width]) * gamma + beta
+        output = tf.transpose(output, [0, 2, 3, 1])
+
+    return output
 
 
 def relu_layer(input, name = "relu"):

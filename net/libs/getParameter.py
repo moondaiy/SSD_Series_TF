@@ -119,6 +119,14 @@ def get_batch_normalization_variable(shape):
 
     return beta, gamma, moving_mean, moving_variance
 
+def get_group_normalization_variable(shape):
+
+    beta = get_variable('beta', shape, initializer=tf.zeros_initializer)
+
+    gamma = get_variable('gamma', shape, initializer=tf.ones_initializer)
+
+    return beta, gamma
+
 def get_l2_normalization_variable(shape,scale_factor = 1.0):
 
     scale = get_variable('scale', shape, initializer=tf.ones_initializer)
