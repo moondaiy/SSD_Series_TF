@@ -21,7 +21,7 @@ training_info:
   save_image_dir: ./image_dir
 
 testing_info:
-  batch_size: 1
+  batch_size: 16
   save_image_dir: ./image_dir
   check_points: ./checkpoint_dir
 
