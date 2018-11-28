@@ -18,7 +18,7 @@ import numpy as np
 
 
 tf.flags.DEFINE_string('config_path', './configs/ssd_300.yaml', 'config path ')
-tf.flags.DEFINE_string('tf_record_path', '/home/tcl/ImageSet/voc/tf_record/train', 'tf record path.')
+tf.flags.DEFINE_string('tf_record_path', '/home/tcl/ImageSet/voc/tf_record/test', 'tf record path.')
 FLAGS = tf.flags.FLAGS
 
 
@@ -69,15 +69,15 @@ if __name__=="__main__":
 
             print("Time is %f"%(end_time - start_time))
 
-            label_out, box_out, score_box, select_index = sess.run(model.finally_box, feed_dict={model.inputs:image_batch , model.is_training: False, model.select_threshold : 0.6, model.nms_threshold : 0.6})
+            label_out, box_out, score_box, select_index = sess.run(model.finally_box, feed_dict={model.inputs:image_batch , model.is_training: False, model.select_threshold : 0.4, model.nms_threshold : 0.5})
 
             for i in range(len(image_name_batch)):
 
-                print("-------------------------------------------------------------------------------------")
+                print("------------------------------%s Start ----------------------------------------------"%(image_name_batch[i]))
 
                 image = render_boxs_info_for_display(image_batch[i], box_out[i], select_index[i], score_box[i], base_info["base_net_size"])
 
-                print("-------------------------------------------------------------------------------------")
+                print("------------------------------%s End--------------------------------------------------"%(image_name_batch[i]))
 
                 cv2.imshow("boxs_info_display", image.astype(np.uint8))
                 cv2.waitKey(0)

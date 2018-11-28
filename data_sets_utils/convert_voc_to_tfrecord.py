@@ -225,17 +225,26 @@ def do_convert_tf_record(image_path, xml_path, type, record_save_path, count):
         #     print("%d Test Image is OK ....."%(counter))
         #     break
 
-def convert_tf_record():
+def convert_tf_record(step="Train"):
 
     train_image_path, train_xml_path, test_image_path, test_xml_path = get_source_from_flags()
 
-    for image_path, xml_path in zip(train_image_path, train_xml_path):
 
-        type = xml_path.split('/')[-2]
+    if step == "Train":
 
-        do_convert_tf_record(image_path, xml_path, type, FLAGS.train_save_path, 0)
+        for image_path, xml_path in zip(train_image_path, train_xml_path):
 
-        # break
+            type = xml_path.split('/')[-2]
+
+            do_convert_tf_record(image_path, xml_path, type, FLAGS.train_save_path, 0)
+
+    elif step == "Test":
+
+        for image_path, xml_path in zip(test_image_path, test_xml_path):
+
+            type = xml_path.split('/')[-2]
+
+            do_convert_tf_record(image_path, xml_path, type, FLAGS.test_save_path, 0)
 
 
 
@@ -247,4 +256,4 @@ if __name__=="__main__":
     print("Convert Start ...")
     print(FLAGS)
 
-    convert_tf_record()
+    convert_tf_record("Test")

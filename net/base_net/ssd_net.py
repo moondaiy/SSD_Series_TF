@@ -186,7 +186,7 @@ class SSD_Net(object):
 
             #那些无效的box 的相对位置信息 -> [0,0,1,1] scores = 0.1 因此在最终显示的时候 要注意处理下 或者查看输出的label分数
             #有效的box 信息 ymin xmin ymax xmax 的形式 ...
-            valid_object_bbox  = tf.where(current_predict_max_object_scores > select_threshold, current_predict_decode_bbox, tf.tile(tf.constant([[0., 0. , 1., 1.]], dtype=tf.float32), multiples=[total_anchor_number, 1]))
+            valid_object_bbox  = tf.where(current_predict_max_object_scores > select_threshold, current_predict_decode_bbox, tf.tile(tf.constant([[0., 0. , 0.001, 0.001]], dtype=tf.float32), multiples=[total_anchor_number, 1]))
             box_out = box_out.write(i, valid_object_bbox)
 
             valid_select_index = nms_calculate(valid_object_bbox, valid_object_scores, nms_threshold, total_anchor_number)

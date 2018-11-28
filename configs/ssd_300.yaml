@@ -1,7 +1,7 @@
 
 base_info:
   net_name: ssd
-  train_step: True
+  train_step: False
   base_net_type: vgg
   base_net_size: 300
   class_number: 21
@@ -21,7 +21,7 @@ training_info:
   save_image_dir: ./image_dir
 
 testing_info:
-  batch_size: 1
+  batch_size: 10
   save_image_dir: ./image_dir
   check_points: ./checkpoint_dir
 
