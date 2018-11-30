@@ -17,7 +17,7 @@ import numpy as np
 
 
 
-tf.flags.DEFINE_string('config_path', './configs/ssd_300.yaml', 'config path ')
+tf.flags.DEFINE_string('config_path', './configs/ssd_dsod_300.yaml', 'config path ')
 tf.flags.DEFINE_string('tf_record_path', '/home/tcl/ImageSet/voc/tf_record/test', 'tf record path.')
 FLAGS = tf.flags.FLAGS
 
@@ -67,7 +67,7 @@ if __name__=="__main__":
 
             start_time = time.clock()
 
-            label_out, box_out, score_box, select_index = sess.run(model.finally_box, feed_dict={model.inputs:image_batch , model.is_training: False, model.select_threshold : 0.5, model.nms_threshold : 0.5})
+            label_out, box_out, score_box, select_index = sess.run(model.finally_box, feed_dict={model.inputs:image_batch , model.is_training: False, model.select_threshold : 0.5, model.nms_threshold : 0.7})
 
             end_time = time.clock()
 

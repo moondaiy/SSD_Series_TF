@@ -95,7 +95,7 @@ if __name__=="__main__":
 
 
     config_path = "./configs/ssd_300.yaml"
-    tf_record_path = "/home/tcl/ImageSet/voc/tf_record/train"
+    tf_record_path = "/home/tcl/ImageSet/voc/tf_record/test"
     configs = parsing_configs(config_path)
 
     base_net_info = configs[0]
@@ -157,19 +157,19 @@ if __name__=="__main__":
             image_name_batch, image_batch, gt_label_batch, num_object, img_height, img_width = \
                 sess.run((data_provider.next_batch()))
 
-            for i in range(len(image_name_batch)):
+            # for i in range(len(image_name_batch)):
+            #
+            #     print("-----------------------------%s   display start-------------------------------------------------"%(image_name_batch[i]))
+            #
+            #     image = render_boxs_info_for_display(image_batch[i], all_anchors, gt_label_batch[i][:,:21], gt_label_batch[i][:, 25], gt_label_batch[i][:, 21:25], gt_label_batch[i][:, 26:30], scale_factors, None, anchor_pos_iou)
+            #
+            #     print("------------------------------%s  display end -------------------------------------------------------"%(image_name_batch[i]))
+            #
+            #     cv2.imshow("boxs_info_display", image.astype(np.uint8))
+            #     cv2.waitKey(0)
+            #     judge_data_valid(image_name_batch[i], gt_label_batch[i], image_batch[i])
 
-                print("-----------------------------%s   display start-------------------------------------------------"%(image_name_batch[i]))
-
-                image = render_boxs_info_for_display(image_batch[i], all_anchors, gt_label_batch[i][:,:21], gt_label_batch[i][:, 25], gt_label_batch[i][:, 21:25], gt_label_batch[i][:, 26:30], scale_factors, None, anchor_pos_iou)
-
-                print("------------------------------%s  display end -------------------------------------------------------"%(image_name_batch[i]))
-
-                cv2.imshow("boxs_info_display", image.astype(np.uint8))
-                cv2.waitKey(0)
-                judge_data_valid(image_name_batch[i], gt_label_batch[i], image_batch[i])
-
-                # r_total_localization_loss, r_total_classification_loss, r_total_loss, r_localization  = sess.run([total_localization_loss, total_classification_loss, total_loss , net.net_out],feed_dict={net.labels :gt_label_batch, net.inputs : image_batch , net.is_training:True})
+            r_total_localization_loss, r_total_classification_loss, r_total_loss, r_localization  = sess.run([total_localization_loss, total_classification_loss, total_loss , net.net_out],feed_dict={net.labels :gt_label_batch, net.inputs : image_batch , net.is_training:True})
 
             # for i in range(len(image_name_batch)):
             #
@@ -184,7 +184,7 @@ if __name__=="__main__":
 
 
 
-                # print("localization loss is %f   classification loss  is %f  total loss is %f"%(r_total_localization_loss, r_total_classification_loss, r_total_loss))
+            print("localization loss is %f   classification loss  is %f  total loss is %f"%(r_total_localization_loss, r_total_classification_loss, r_total_loss))
 
 
 

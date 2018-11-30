@@ -2,6 +2,7 @@
 import tensorflow as tf
 import numpy as np
 from . import ssd_vgg as ssd_vgg_net
+from . import ssd_densenet as ssd_dense_net
 from net.box_utils.boxes_tf_op import decode_boxes
 from net.box_utils.nms_tf_op import nms_calculate
 
@@ -80,6 +81,10 @@ class SSD_Net(object):
         if base_net_type == "vgg":
 
             net = ssd_vgg_net.SSD_VGG(base_net_size)
+
+        elif base_net_type == "dense":
+
+            net = ssd_dense_net.SSD_DenseNet(base_net_size)
 
         else:
 

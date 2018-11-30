@@ -1,0 +1,98 @@
+
+base_info:
+  net_name: ssd
+  train_step: False
+  base_net_type: dense
+  base_net_size: 300
+  class_number: 21
+
+training_info:
+  train_restore_flag: False
+  max_epoch: 2000
+  batch_size:  10
+  learn_ratio: 0.001
+  learn_ratio_change_step:
+    - 0
+    - 0.1
+  optimizer_type: adam_optimizer
+  check_points: ./checkpoint_dir
+  use_batch_norm: True
+  log_dir: ./log
+  save_image_dir: ./image_dir
+
+testing_info:
+  batch_size: 16
+  save_image_dir: ./image_dir
+  check_points: ./checkpoint_dir
+
+inference_info:
+
+
+anchor_info:
+  anchor_size:
+    - [30, 60]
+    - [60, 111]
+    - [111, 162]
+    - [162, 213]
+    - [213, 264]
+    - [264, 315]
+  anchor_ratios:
+    - [2, 0.5]
+    - [2, 0.5, 3, 0.3333]
+    - [2, 0.5, 3, 0.3333]
+    - [2, 0.5, 3, 0.3333]
+    - [2, 0.5]
+    - [2, 0.5]
+  feature_shape:
+    - [38, 38]
+    - [19, 19]
+    - [10, 10]
+    - [5, 5]
+    - [3, 3]
+    - [1, 1]
+  anchor_strides:
+    - 8
+    - 16
+    - 32
+    - 64
+    - 100
+    - 300
+  prior_scaling:
+    - 10.
+    - 10.
+    - 5.
+    - 5.
+  anchor_offset: 0.5
+  anchor_pos_iou_threshold: 0.5
+
+extract_feature_info:
+
+  extract_feature_valid_layer:
+    - "1"
+    - "2"
+    - "3"
+    - "4"
+    - "5"
+    - "6"
+  extract_feature_normalization:
+    - 1.
+    - 1.
+    - 1.
+    - 1.
+    - 1.
+    - 1.
+
+loss_info:
+  neg_pos_ratio: 3.0
+  min_negative_number: 0
+  alpha : 1.0
+
+
+
+
+
+
+
+
+
+
