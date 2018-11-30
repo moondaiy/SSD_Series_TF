@@ -50,7 +50,7 @@ class Solver(object):
         with self.graph.as_default():
 
             #训练用的 step 计数
-            self.global_step = tf.Variable(0, trainable=False)
+            self.global_step = tf.Variable(0, name="global_step" , trainable=False)
 
             #学习率配置
             self.lr = tf.constant(self.train_init_learning, dtype=tf.float32)
@@ -65,22 +65,13 @@ class Solver(object):
 
             total_localization_loss, total_classification_loss, total_loss = self.model.build_loss(self.model.multibox_layer_out,self.model.labels,self.model.total_anchor_number)
 
+
             with tf.variable_scope("optimizer_vars"):
 
-                if self.use_batch_norm == True:
+                optimizer = self.get_optimizer()
 
-                    with tf.control_dependencies(tf.get_collection(LAYERS_UPDATE_OPS_COLLECTION)):
+                train_op = optimizer(learning_rate=self.train_init_learning).minimize(total_loss, global_step=self.global_step)
 
-                        optimizer = self.get_optimizer()
-
-                        train_op = optimizer(learning_rate=self.train_init_learning).minimize(total_loss, global_step=self.global_step)
-                else:
-
-                    with tf.control_dependencies(tf.get_collection(LAYERS_UPDATE_OPS_COLLECTION)):
-
-                        optimizer = self.get_optimizer()
-
-                        train_op = optimizer(learning_rate=self.train_init_learning).minimize(total_loss, global_step=self.global_step)
 
             with self.session.as_default() as sess:
 
@@ -102,15 +93,15 @@ class Solver(object):
                         #得到当前的 batch 数据
                         image_name_batch, image_batch, gt_label_batch, num_object, img_height, img_width = sess.run(self.data_provider.next_batch())
 
-                        _, r_total_localization_loss, r_total_classification_loss, r_total_loss, global_step, learning_ratio = \
+                        _, r_total_localization_loss, r_total_classification_loss, r_total_loss, _global_step, learning_ratio = \
                             sess.run([train_op, total_localization_loss, total_classification_loss, total_loss, self.global_step, self.lr],feed_dict={self.model.labels: gt_label_batch, self.model.inputs: image_batch, self.model.is_training: True})
 
                         print("Current epoch %d train total step %d learn rate is %f total loss is %f classification loss is %f  localization loss is %f" %
-                              (epoch, global_step, learning_ratio, r_total_loss, r_total_classification_loss, r_total_localization_loss))
+                              (epoch, _global_step, learning_ratio, r_total_loss, r_total_classification_loss, r_total_localization_loss))
 
                         if r_total_loss < last_loss:
 
-                            self.save_checkpoint(global_step, r_total_loss)
+                            self.save_checkpoint(_global_step, r_total_loss)
                             last_loss = r_total_loss
 
                     self.batch_start_index = 0
@@ -165,7 +156,7 @@ class Solver(object):
 
         elif self.optimizer_type == "sgd_optimizer":
 
-            optimizer = tf.train.GradientDescentOptimizer
+            optimizer = tf.train.MomentumOptimizer
 
         else:
             assert False , "Now Only Support Adam Optimizer"

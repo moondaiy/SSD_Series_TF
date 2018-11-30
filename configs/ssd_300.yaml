@@ -1,7 +1,7 @@
 
 base_info:
   net_name: ssd
-  train_step: False
+  train_step: True
   base_net_type: vgg
   base_net_size: 300
   class_number: 21
@@ -9,7 +9,7 @@ base_info:
 training_info:
   train_restore_flag: False
   max_epoch: 2000
-  batch_size:  10
+  batch_size:  1
   learn_ratio: 0.001
   learn_ratio_change_step:
     - 0
@@ -19,11 +19,13 @@ training_info:
   use_batch_norm: True
   log_dir: ./log
   save_image_dir: ./image_dir
+  tf_record_path: /home/tcl/ImageSet/voc/tf_record/test
 
 testing_info:
   batch_size: 16
   save_image_dir: ./image_dir
   check_points: ./checkpoint_dir
+  tf_record_path: /home/tcl/ImageSet/voc/tf_record/test
 
 inference_info:
 

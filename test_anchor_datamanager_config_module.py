@@ -94,14 +94,15 @@ def judge_data_valid(image_name , gt_box_label, image =None, extra = None):
 if __name__=="__main__":
 
 
-    config_path = "./configs/ssd_300.yaml"
-    tf_record_path = "/home/tcl/ImageSet/voc/tf_record/test"
+    config_path = "./configs/ssd_dsod_300.yaml"
+    # tf_record_path = "/home/tcl/ImageSet/voc/tf_record/test"
     configs = parsing_configs(config_path)
 
     base_net_info = configs[0]
     anchor_info = configs[1]
     extract_feature_info = configs[2]
     loss_info = configs[3]
+    extra_info = configs[4]
 
     ground_truth = np.array([[0.25, 0.25, 0.5,0.5, 0],
                              [0.5, 0.5, 0.75, 0.75, 3],
@@ -119,6 +120,8 @@ if __name__=="__main__":
     class_numer       = base_net_info["class_number"]
     image_shape       = base_net_info["base_net_size"]
     is_training       = base_net_info["train_step"]
+
+    tf_record_path = extra_info["tf_record_path"]
 
     total_number = 0
 
@@ -157,17 +160,17 @@ if __name__=="__main__":
             image_name_batch, image_batch, gt_label_batch, num_object, img_height, img_width = \
                 sess.run((data_provider.next_batch()))
 
-            # for i in range(len(image_name_batch)):
-            #
-            #     print("-----------------------------%s   display start-------------------------------------------------"%(image_name_batch[i]))
-            #
-            #     image = render_boxs_info_for_display(image_batch[i], all_anchors, gt_label_batch[i][:,:21], gt_label_batch[i][:, 25], gt_label_batch[i][:, 21:25], gt_label_batch[i][:, 26:30], scale_factors, None, anchor_pos_iou)
-            #
-            #     print("------------------------------%s  display end -------------------------------------------------------"%(image_name_batch[i]))
-            #
-            #     cv2.imshow("boxs_info_display", image.astype(np.uint8))
-            #     cv2.waitKey(0)
-            #     judge_data_valid(image_name_batch[i], gt_label_batch[i], image_batch[i])
+            for i in range(len(image_name_batch)):
+
+                print("-----------------------------%s   display start-------------------------------------------------"%(image_name_batch[i]))
+
+                image = render_boxs_info_for_display(image_batch[i], all_anchors, gt_label_batch[i][:,:21], gt_label_batch[i][:, 25], gt_label_batch[i][:, 21:25], gt_label_batch[i][:, 26:30], scale_factors, None, anchor_pos_iou)
+
+                print("------------------------------%s  display end -------------------------------------------------------"%(image_name_batch[i]))
+
+                cv2.imshow("boxs_info_display", image.astype(np.uint8))
+                cv2.waitKey(0)
+                judge_data_valid(image_name_batch[i], gt_label_batch[i], image_batch[i])
 
             r_total_localization_loss, r_total_classification_loss, r_total_loss, r_localization  = sess.run([total_localization_loss, total_classification_loss, total_loss , net.net_out],feed_dict={net.labels :gt_label_batch, net.inputs : image_batch , net.is_training:True})
 

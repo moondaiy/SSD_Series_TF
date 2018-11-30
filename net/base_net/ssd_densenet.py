@@ -16,89 +16,97 @@ class SSD_DenseNet(object):
 
         self.input_image_size = input_image_size
 
-    def dense_feature_extract_300(self, inputs, is_training):
+    def dense_feature_extract_300(self, inputs, is_training, extra_info=None):
+
+        self.is_training = is_training
 
         end_points = {}
+        bias = False
+
+        #没办法显卡空间不够了. 原始papaer是 48
+        growth_rate = 48
+
+        #不使用drop out技术
+        drop_ratio = 1.0
+
+
+        group_number = 4
+
+
+        # return self.vgg_feature_extract_300(inputs, is_training)
 
         with tf.variable_scope('dsod_feature_extract_300'):
 
-            net = inputs
-
             #net 128×75×75
-            net = self.build_stem_block_for_dsod(net, is_training, "stem")
-
+            net = self.build_stem_block_for_dsod(inputs, is_training, group_number, "stem")
 
             #net 416×38×38
-            net = dense_api.build_dense_block(net, 6, 48, 3, 3, 1, 1, is_training, 1.0, True, False , "dense_block_1_block")
-            net, out_put_no_pooling = dense_api.build_transition_layer(net , 2, 2, 1.0, is_training, 1.0, name="dense_block_1_transition")
+            net = dense_api.build_dense_block(net, 6, growth_rate, 3, 3, 1, 1, is_training, drop_ratio, True, bias , group_number, "dense_block_1_block")
+            net, out_put_no_pooling = dense_api.build_transition_layer(net , 2, 2, 1.0, is_training, drop_ratio, bias, group_number, name="dense_block_1_transition")
 
 
-            net = dense_api.build_dense_block(net, 8, 48, 3, 3, 1, 1, is_training, 1.0, True, False, "dense_block_2_block")
-            net, out_put_no_pooling = dense_api.build_transition_layer(net, 2, 2, 1.0, is_training, 1.0, name="dense_block_2_transition")
+            net = dense_api.build_dense_block(net, 8, growth_rate, 3, 3, 1, 1, is_training, drop_ratio, True, bias, group_number, "dense_block_2_block")
+            net, out_put_no_pooling = dense_api.build_transition_layer(net, 2, 2, 1.0, is_training, drop_ratio, bias, group_number, name="dense_block_2_transition")
 
             # first 800×38×38
-            first_pre_left = out_put_no_pooling
-            first_feature = first_pre_left
+            end_points["1"] = out_put_no_pooling
 
+            net = dense_api.build_dense_block(net, 8, growth_rate, 3, 3, 1, 1, is_training, drop_ratio, True, bias, group_number, "dense_block_3_block")
+            net = dense_api.build_transition_w_o_layer(net , is_training, drop_ratio, bias=bias, group = group_number, name="dense_block_3_transition_w_o_layer")
 
-            net = dense_api.build_dense_block(net, 8, 48, 3, 3, 1, 1, is_training, 1.0, True, False, "dense_block_3_block")
-            net = dense_api.build_transition_w_o_layer(net , is_training, 1.0, bias=False, name="dense_block_3_transition_w_o_layer")
-
-            net = dense_api.build_dense_block(net, 8, 48, 3, 3, 1, 1, is_training, 1.0, True, False, "dense_block_4_block")
-            net = dense_api.build_transition_w_o_layer(net , is_training, 1.0, bias=False, name="dense_block_4_transition_w_o_layer")
+            net = dense_api.build_dense_block(net, 8, growth_rate, 3, 3, 1, 1, is_training, drop_ratio, True, bias, group_number, "dense_block_4_block")
+            net = dense_api.build_transition_w_o_layer(net , is_training, 1.0, bias=bias, group = group_number, name="dense_block_4_transition_w_o_layer")
 
             # backbone_out 1568×19×19
-            backbone_out = net
+            # backbone_out = net
 
-            second_pre_right = dense_api.build_composite_brc_layer(backbone_out, 256, 1, 1, 1, 1, is_training, 1.0, bias=False , name ="second_feature_right_process")
-            second_pre_left  = self.pre_process_left_feature(first_pre_left, 256, is_training, 1.0, bias=False , name="second_feature_left_process")
+            second_pre_right = dense_api.build_composite_brc_layer(net, 256, 1, 1, 1, 1, is_training, drop_ratio, bias=bias , group = group_number, name ="second_feature_right_process")
+            second_pre_left  = self.pre_process_left_feature(out_put_no_pooling, 256, is_training, drop_ratio, bias=bias , group = group_number, name="second_feature_left_process")
             second_feature = tf.concat([second_pre_left, second_pre_right],axis=3)
-
-            third_pre_right = self.pre_process_right_feature(second_feature, 256, is_training, 1.0, bias=False , name="third_feature_left_process")
-            third_pre_left  = self.pre_process_left_feature( second_feature, 256, is_training, 1.0, bias=False , name="third_feature_left_process")
-            third_feature = tf.concat([third_pre_left, third_pre_right],axis=3)
-
-
-            forth_pre_right = self.pre_process_right_feature(third_feature, 128, is_training, 1.0, bias=False , name="forth_feature_left_process")
-            forth_pre_left  = self.pre_process_left_feature( third_feature, 128, is_training, 1.0, bias=False , name="forth_feature_left_process")
-            forth_feature = tf.concat([forth_pre_left, forth_pre_right],axis=3)
-
-
-            fifth_pre_right = self.pre_process_right_feature(forth_feature, 128, is_training, 1.0, bias=False , name="fifth_feature_left_process")
-            fifth_pre_left  = self.pre_process_left_feature( forth_feature, 128, is_training, 1.0, bias=False , name="fifth_feature_left_process")
-            fifth_feature = tf.concat([fifth_pre_left, fifth_pre_right],axis=3)
-
-
-            sixth_pre_right = self.pre_process_right_feature(fifth_feature, 128, is_training, 1.0, bias=False , name="sixth_feature_left_process" , padding="VALID")
-            sixth_pre_left  = self.pre_process_left_feature( fifth_feature, 128, is_training, 1.0, bias=False , name="sixth_feature_left_process" , stride  = 2, padding="VALID")
-            sixth_feature = tf.concat([sixth_pre_left, sixth_pre_right],axis=3)
-
-            end_points["1"] = first_feature
             end_points["2"] = second_feature
+
+            third_pre_right = self.pre_process_right_feature(second_feature, 256, is_training, drop_ratio, bias=bias , group = group_number, name="third_feature_left_process")
+            third_pre_left  = self.pre_process_left_feature( second_feature, 256, is_training, drop_ratio, bias=bias , group = group_number, name="third_feature_left_process")
+            third_feature = tf.concat([third_pre_left, third_pre_right],axis=3)
             end_points["3"] = third_feature
+
+
+            forth_pre_right = self.pre_process_right_feature(third_feature, 128, is_training, drop_ratio, bias=bias , group = group_number, name="forth_feature_left_process")
+            forth_pre_left  = self.pre_process_left_feature( third_feature, 128, is_training, drop_ratio, bias=bias , group = group_number, name="forth_feature_left_process")
+            forth_feature = tf.concat([forth_pre_left, forth_pre_right],axis=3)
             end_points["4"] = forth_feature
+
+
+            fifth_pre_right = self.pre_process_right_feature(forth_feature, 128, is_training, drop_ratio, bias=bias , group = group_number, name="fifth_feature_left_process")
+            fifth_pre_left  = self.pre_process_left_feature( forth_feature, 128, is_training, drop_ratio, bias=bias , group = group_number, name="fifth_feature_left_process")
+            fifth_feature = tf.concat([fifth_pre_left, fifth_pre_right],axis=3)
             end_points["5"] = fifth_feature
+
+
+            sixth_pre_right = self.pre_process_right_feature(fifth_feature, 128, is_training, drop_ratio, bias=bias , group = group_number, name="sixth_feature_left_process" , padding="VALID")
+            sixth_pre_left  = self.pre_process_left_feature( fifth_feature, 128, is_training, drop_ratio, bias=bias , group = group_number, name="sixth_feature_left_process" , stride  = 2, padding="VALID")
+            sixth_feature = tf.concat([sixth_pre_left, sixth_pre_right],axis=3)
             end_points["6"] = sixth_feature
 
             return end_points
 
-    def pre_process_left_feature(self, inputs, output_channel_number, is_training, keep_prob, bias , name, stride = 1, padding = "SAME"):
+    def pre_process_left_feature(self, inputs, output_channel_number, is_training, keep_prob, bias , group , name, stride = 1, padding = "SAME"):
 
         with tf.variable_scope(name) as scope:
 
             net = getLayer.max_pooling_layer(inputs)
 
-            net = dense_api.build_composite_brc_layer(net, output_channel_number, 1, 1, stride, stride, is_training, keep_prob, bias , name ="bn_relu_conv", padding = padding)
+            net = dense_api.build_composite_brc_layer(net, output_channel_number, 1, 1, stride, stride, is_training, keep_prob, bias , group , name ="bn_relu_conv", padding = padding)
 
             return net
 
     #参考 http://ethereon.github.io/netscope/#/gist/b17d01f3131e2a60f9057b5d3eb9e04d 的左右分支处理
-    def pre_process_right_feature(self, inputs, output_channel_number, is_training, keep_prob, bias, name, padding = "SAME"):
+    def pre_process_right_feature(self, inputs, output_channel_number, is_training, keep_prob, bias, group, name, padding = "SAME"):
 
         with tf.variable_scope(name) as scope:
 
-            net = dense_api.build_composite_brc_layer(inputs, output_channel_number, 1, 1, 1, 1, is_training, keep_prob, bias, name="bn_relu_conv_1", padding = padding)
-            net = dense_api.build_composite_brc_layer(net,    output_channel_number, 3, 3, 2, 2, is_training, keep_prob, bias, name="bn_relu_conv_2", padding = padding)
+            net = dense_api.build_composite_brc_layer(inputs, output_channel_number, 1, 1, 1, 1, is_training, keep_prob, bias, group, name="bn_relu_conv_1", padding = padding)
+            net = dense_api.build_composite_brc_layer(net,    output_channel_number, 3, 3, 2, 2, is_training, keep_prob, bias, group, name="bn_relu_conv_2", padding = padding)
 
             return net
 
@@ -120,17 +128,17 @@ class SSD_DenseNet(object):
         return valid_feature_list
 
 
-    def build_stem_block_for_dsod(self, inputs , is_training , name = "stem"):
+    def build_stem_block_for_dsod(self, inputs , is_training , group = 4, name = "stem"):
 
         #根据paper中的说明 stem block 这样组成的 但是注意的是 bias 是false的
         # keep_prop = 1.0 则说明不需要drop out 操作
         with tf.variable_scope(name) as scope:
 
-            inputs = dense_api.build_composite_cbr_layer(inputs, 64,  3, 3, 2, 2, is_training, keep_prob = 1.0, bias= False, name ="conv_bn_relu_1")
+            inputs = dense_api.build_composite_cbr_layer(inputs, 64,  3, 3, 2, 2, is_training, keep_prob = 1.0, bias= False, group = group, name ="conv_bn_relu_1")
 
-            inputs = dense_api.build_composite_cbr_layer(inputs, 64,  3, 3, 1, 1, is_training, keep_prob = 1.0, bias= False, name ="conv_bn_relu_2")
+            inputs = dense_api.build_composite_cbr_layer(inputs, 64,  3, 3, 1, 1, is_training, keep_prob = 1.0, bias= False, group = group,  name ="conv_bn_relu_2")
 
-            inputs = dense_api.build_composite_cbr_layer(inputs, 128, 3, 3, 1, 1, is_training, keep_prob = 1.0, bias= False, name ="conv_bn_relu_3")
+            inputs = dense_api.build_composite_cbr_layer(inputs, 128, 3, 3, 1, 1, is_training, keep_prob = 1.0, bias= False, group = group,  name ="conv_bn_relu_3")
 
             inputs = getLayer.max_pooling_layer(inputs, kernel_h = 2, kernel_w = 2, slide_h = 2, slide_w = 2)
 
@@ -189,6 +197,7 @@ class SSD_DenseNet(object):
     def single_multibox_layer(self,inputs, class_number, anchor_base_size, anchor_ratio, normalization_factor , current_feature_size_h, current_feature_size_w, scope_name):
 
         nets = inputs
+        bias = True
 
         if normalization_factor != 0:
 
@@ -209,13 +218,14 @@ class SSD_DenseNet(object):
 
         #loc   信息获得
         loc_pred_name = scope_name + "_location"
-        loc_pred = getLayer.convolution_layer(nets, num_loc_pred_number, 3, 3, 1, 1, loc_pred_name)
+        loc_pred = getLayer.convolution_layer(nets, num_loc_pred_number, 3, 3, 1, 1, loc_pred_name, biased=bias)
+        loc_pred = getLayer.group_normalization_layer(loc_pred , num_anchors , loc_pred_name + "bn")
         loc_pred = tf.reshape(loc_pred, shape=reshape_loc_tesnor)
-        # loc_pred = tf.reshape(loc_pred, shape=[-1, -1, 4])
 
         #class 信息获得
         cls_pred_name = scope_name + "_classfication"
-        cls_pred = getLayer.convolution_layer(nets, num_cls_pred_number, 3, 3, 1, 1, cls_pred_name)
+        cls_pred = getLayer.convolution_layer(nets, num_cls_pred_number, 3, 3, 1, 1, cls_pred_name, biased=bias)
+        cls_pred = getLayer.group_normalization_layer(cls_pred, num_anchors , cls_pred_name + "bn")
         cls_pred = tf.reshape(cls_pred, shape=reshape_cls_tesnor)
 
         return loc_pred, cls_pred
@@ -240,5 +250,7 @@ class SSD_DenseNet(object):
         predict_tensor = tf.concat([soft_max_logistc_tensor, logistic_bbox_tensor], axis=2)
 
         return predict_tensor
+
+
 
 

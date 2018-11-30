@@ -1,4 +1,4 @@
 *.pyc
-checkpoint_dir/*
+checkpoint_dir*/*
 .idea
 .DS_Store

@@ -58,6 +58,12 @@ def get_variable(name, shape, initializer=None, trainable=True, regularizer=None
 
     return var
 
+def get_variable_with_fixed_value(name, value, trainable=True , regularizer=None):
+
+    var = tf.get_variable(name, initializer=value, trainable=trainable, regularizer=regularizer)
+
+    return var
+
 def get_convolution_variable(channel_in, channel_out, kernel_h, kernel_w, biased=True, trainable=True, regular=DEFAULT_REGULAR, weight_decay=DEFAULT_WEIGHT_DECAY, init_mode=DEFAULT_INITMODE):
 
     #以后改进选择不同的初始化方式进行不同的初值设置
@@ -129,6 +135,9 @@ def get_group_normalization_variable(shape):
 
 def get_l2_normalization_variable(shape,scale_factor = 1.0):
 
-    scale = get_variable('scale', shape, initializer=tf.ones_initializer)
+    # init_value = tf.constant(scale_factor, shape=shape)
+    #
+    # scale = get_variable_with_fixed_value('scale', init_value)
+    scale = get_variable('scale', shape, initializer=tf.ones_initializer())
 
     return scale * scale_factor

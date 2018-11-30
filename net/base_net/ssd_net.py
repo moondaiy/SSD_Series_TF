@@ -105,7 +105,7 @@ class SSD_Net(object):
         return anchors
 
 
-    def build_base_feature_layer(self, base_net_type):
+    def build_base_feature_layer(self, base_net_type, extra_info = None):
 
         feature_layer_out = self.ssd_instance.build_feature_layer(self.inputs, self.is_training, self.base_net_size)
 

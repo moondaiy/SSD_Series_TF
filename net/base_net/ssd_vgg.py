@@ -13,7 +13,7 @@ class SSD_VGG(object):
 
         self.base_size = size
 
-    def build_feature_layer(self, inputs, is_training, size):
+    def build_feature_layer(self, inputs, is_training, size, extra_info = None):
 
         if size == 300:
 

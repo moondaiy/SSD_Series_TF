@@ -12,8 +12,7 @@ from configs.configs import parsing_configs
 from anchor.Anchor import Anchor
 
 
-tf.flags.DEFINE_string('config_path', './configs/ssd_300.yaml', 'config path ')
-tf.flags.DEFINE_string('tf_record_path', '/home/tcl/ImageSet/voc/tf_record/train', 'tf record path.')
+tf.flags.DEFINE_string('config_path', './configs/ssd_dsod_300.yaml', 'config path ')
 FLAGS = tf.flags.FLAGS
 
 
@@ -25,8 +24,6 @@ FLAGS = tf.flags.FLAGS
 if __name__=="__main__":
 
     print("config path is %s "%(FLAGS.config_path))
-    print("tf record root path is %s" %(FLAGS.tf_record_path))
-
 
     # base_info, anchor_info, extract_feature_info, loss_info, train_info
     configs = parsing_configs(FLAGS.config_path)
@@ -37,9 +34,11 @@ if __name__=="__main__":
     loss_info             = configs[3]
     train_info            = configs[4]
 
+    print("config path is %s " % (train_info["tf_record_path"]))
+
     anchor = Anchor(anchor_info, base_info)
 
-    data_provider = Data_Manager(FLAGS.tf_record_path, train_info["batch_size"], base_info["train_step"],
+    data_provider = Data_Manager(train_info["tf_record_path"], train_info["batch_size"], base_info["train_step"],
                                  base_info["base_net_size"], anchor.get_anchors(), base_info["class_number"],
                                  anchor_info["prior_scaling"], anchor_info["anchor_pos_iou_threshold"])
 

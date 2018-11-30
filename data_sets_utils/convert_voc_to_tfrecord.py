@@ -221,7 +221,7 @@ def do_convert_tf_record(image_path, xml_path, type, record_save_path, count):
         #测试
         counter += 1
 
-        # if counter >= 20:
+        # if counter >= 10:
         #     print("%d Test Image is OK ....."%(counter))
         #     break
 
@@ -256,4 +256,4 @@ if __name__=="__main__":
     print("Convert Start ...")
     print(FLAGS)
 
-    convert_tf_record("Test")
+    convert_tf_record("Train")

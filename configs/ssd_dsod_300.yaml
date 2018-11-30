@@ -9,21 +9,27 @@ base_info:
 training_info:
   train_restore_flag: False
   max_epoch: 2000
-  batch_size:  10
+  batch_size:  4
   learn_ratio: 0.001
   learn_ratio_change_step:
     - 0
     - 0.1
+  #optimizer_type: sgd_optimizer
   optimizer_type: adam_optimizer
+  momentum: 0.9
+
   check_points: ./checkpoint_dir
   use_batch_norm: True
+  group_number : 4
   log_dir: ./log
   save_image_dir: ./image_dir
+  tf_record_path: /home/tcl/ImageSet/voc/tf_record/train
 
 testing_info:
   batch_size: 16
   save_image_dir: ./image_dir
   check_points: ./checkpoint_dir
+  tf_record_path: /home/tcl/ImageSet/voc/tf_record/test
 
 inference_info:
 

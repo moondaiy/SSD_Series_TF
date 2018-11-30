@@ -279,6 +279,8 @@ def normalization_layer(input, is_train, name, type, group, is_convolution=True,
 
 def batch_normalization_layer(input, is_train, name, is_convolution=True, moving_decay = DEFAULT_BN_MOVING_DECAY, bn_decay= DEFAULT_BN_EPSILON):
 
+    # return tf.layers.batch_normalization(input, training=True)
+
     shape = input.get_shape().as_list()[-1]  # 根据channel得到
 
     with tf.variable_scope(name) as scope:
@@ -304,7 +306,7 @@ def batch_normalization_layer(input, is_train, name, is_convolution=True, moving
         return output
 
 
-def group_normalization_layer(input, name, group):
+def group_normalization_layer(input, group, name):
 
     with tf.variable_scope(name) as scope:
 
@@ -316,7 +318,7 @@ def group_normalization_layer(input, name, group):
 
         group = min(group, channel)
 
-        input = tf.reshape(input, [batch_size, group, channel // group, height, width])
+        input = tf.reshape(input, [-1, group, channel // group, height, width])
 
         mean, var = tf.nn.moments(input, [2, 3, 4], keep_dims=True)
 
@@ -327,7 +329,7 @@ def group_normalization_layer(input, name, group):
         gamma = tf.reshape(gamma, [1, channel, 1, 1])
         beta  = tf.reshape(beta,  [1, channel, 1, 1])
 
-        output = tf.reshape(input, [batch_size, channel, height, width]) * gamma + beta
+        output = tf.reshape(input, [-1, channel, height, width]) * gamma + beta
         output = tf.transpose(output, [0, 2, 3, 1])
 
     return output
@@ -475,9 +477,13 @@ def normalization_l2_layer(inputs, scale_factor, scope_name):
 
         if scale_factor > 0:
 
-            scale_factor = get_l2_normalization_variable(params_shape, scale_factor)
+            scale_factor_var = get_l2_normalization_variable(params_shape, scale_factor)
 
-        return outputs * scale_factor
+        else:
+
+            scale_factor_var = 1.0
+
+        return outputs * scale_factor_var
 
 
 
