@@ -1,7 +1,7 @@
 
 base_info:
   net_name: ssd
-  train_step: False
+  train_step: True
   base_net_type: dense
   base_net_size: 300
   class_number: 21
@@ -9,7 +9,7 @@ base_info:
 training_info:
   train_restore_flag: False
   max_epoch: 2000
-  batch_size:  4
+  batch_size:  8
   learn_ratio: 0.001
   learn_ratio_change_step:
     - 0
@@ -17,19 +17,22 @@ training_info:
   #optimizer_type: sgd_optimizer
   optimizer_type: adam_optimizer
   momentum: 0.9
+  number_epoch_for_decay: 2
+  decay_rate: 0.9
 
   check_points: ./checkpoint_dir
   use_batch_norm: True
   group_number : 4
   log_dir: ./log
   save_image_dir: ./image_dir
-  tf_record_path: /home/tcl/ImageSet/voc/tf_record/train
+  tf_record_path: /home/tcl/DataBack/voc/tf_record/train
+  gpu_number: 2
 
 testing_info:
   batch_size: 16
   save_image_dir: ./image_dir
   check_points: ./checkpoint_dir
-  tf_record_path: /home/tcl/ImageSet/voc/tf_record/test
+  tf_record_path: /home/tcl/DataBack/voc/tf_record/test
 
 inference_info:
 

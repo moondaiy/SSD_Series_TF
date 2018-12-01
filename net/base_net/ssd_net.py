@@ -9,7 +9,7 @@ from net.box_utils.nms_tf_op import nms_calculate
 
 class SSD_Net(object):
 
-    def __init__(self, base_net_info, anchor_info, extract_feature_info, all_anchor = None, loss_info = None, inference_flag = False, graph_create_flag = False):
+    def __init__(self, base_net_info, anchor_info, extract_feature_info, all_anchor = None, loss_info = None, inference_flag = False, graph_create_flag = False, extra_input = True, input_image_batch = None, input_label_batch = None):
         """
         :param inputs:
         :param is_training: 是否是训练状态
@@ -37,10 +37,24 @@ class SSD_Net(object):
 
             self.train_flag = base_net_info["train_step"]
             self.anchors_info = anchor_info
+            #外部传入anchors
+            self.anchors = np.concatenate(all_anchor, axis=0)
 
-            self.inputs = tf.placeholder(dtype=tf.float32, shape=[None, self.base_net_size, self.base_net_size, 3])
+            self.total_anchor_number = len(self.anchors)
 
-            self.is_training = tf.placeholder(dtype=tf.bool, shape=[])
+
+
+            if extra_input == True:
+
+                self.labels = tf.placeholder(dtype=tf.float32, shape=[ None, self.total_anchor_number, self.class_number + 9])
+                self.inputs = tf.placeholder(dtype=tf.float32, shape=[None, self.base_net_size, self.base_net_size, 3])
+                self.is_training = tf.placeholder(dtype=tf.bool, shape=[])
+
+            else:
+                #另行赋值
+                self.labels = input_label_batch
+                self.inputs = input_image_batch
+                self.is_training = tf.convert_to_tensor(self.train_flag, dtype=tf.bool)
 
             self.ssd_instance = self.build_ssd_instance(self.base_net_type, self.base_net_size)
 
@@ -48,16 +62,8 @@ class SSD_Net(object):
             self.base_net_out = self.build_base_feature_layer(self.base_net_type)
             self.valid_feature_layer_info = extract_feature_info
 
-
             #在基础网络的基础上进一步提取有效的feature layer
             self.valid_feature_out = self.build_valid_feature_layer(self.base_net_out, self.valid_feature_layer_info["extract_feature_valid_layer"], self.base_net_size)
-
-            #外部传入anchors
-            self.anchors = np.concatenate(all_anchor, axis=0)
-
-            self.total_anchor_number = len(self.anchors)
-
-            self.labels = tf.placeholder(dtype=tf.float32, shape=[ None, self.total_anchor_number, self.class_number + 9])
 
             #再进行最终输出的时候 做nms需要进行的门限值 ,也是在测试或inference阶段需要
             self.select_threshold = tf.placeholder(dtype=tf.float32, shape=[])
