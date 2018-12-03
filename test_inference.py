@@ -20,7 +20,6 @@ import numpy as np
 
 
 tf.flags.DEFINE_string('config_path', './configs/ssd_dsod_300.yaml', 'config path ')
-tf.flags.DEFINE_string('image_root', '/home/tcl/ImageSet/voc/tf_record/test', 'tf record path.')
 FLAGS = tf.flags.FLAGS
 
 
@@ -59,38 +58,24 @@ if __name__=="__main__":
         coord = tf.train.Coordinator()
         threads = tf.train.start_queue_runners(coord=coord)
 
-        for batch_number in range(3):
 
+        original_image_batch, test_image_batch = read_image_with_dir("/home/tcl/Project/PyPrj/SSD-Tensorflow-master/demo")
 
+        start_time = time.clock()
 
-            image_name_batch, image_batch, gt_label_batch, num_object, img_height, img_width = \
-                sess.run((data_provider.next_batch()))
+        label_out, box_out, score_box, select_index = sess.run(model.finally_box, feed_dict={model.inputs:test_image_batch , model.is_training: False, model.select_threshold : 0.5, model.nms_threshold : 0.5})
 
-            start_time = time.clock()
+        end_time = time.clock()
 
-            label_out, box_out, score_box, select_index = sess.run(model.finally_box, feed_dict={model.inputs:image_batch , model.is_training: False, model.select_threshold : 0.5, model.nms_threshold : 0.5})
+        print("Time is %f"%(end_time - start_time))
 
-            end_time = time.clock()
+        for i in range(len(test_image_batch)):
 
-            print("Time is %f"%(end_time - start_time))
+            print("------------------------------%s Start ----------------------------------------------")
 
-            for i in range(len(image_name_batch)):
+            image = render_boxs_info_for_display(original_image_batch[i], box_out[i], select_index[i], score_box[i], base_info["base_net_size"])
 
-                image, image_whiten = read_image_and_whiten(image_name_batch[i], "/home/tcl/ImageSet/voc/VOC_Test/VOCdevkit/" )
+            print("------------------------------%s End--------------------------------------------------")
 
-                print("------------------------------%s Start ----------------------------------------------"%(image_name_batch[i]))
-
-                image = render_boxs_info_for_display(image, box_out[i], select_index[i], score_box[i], base_info["base_net_size"])
-
-                print("------------------------------%s End--------------------------------------------------"%(image_name_batch[i]))
-
-                cv2.imshow("boxs_info_display", image.astype(np.uint8))
-                cv2.waitKey(0)
-
-
-
-
-
-
-
-
+            cv2.imshow("boxs_info_display", image.astype(np.uint8))
+            cv2.waitKey(0)

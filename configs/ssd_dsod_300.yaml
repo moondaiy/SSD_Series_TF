@@ -1,7 +1,7 @@
 
 base_info:
   net_name: ssd
-  train_step: True
+  train_step: False
   base_net_type: dense
   base_net_size: 300
   class_number: 21
@@ -25,25 +25,32 @@ training_info:
   group_number : 4
   log_dir: ./log
   save_image_dir: ./image_dir
-  tf_record_path: /home/tcl/DataBack/voc/tf_record/train
+  tf_record_path: /home/tcl/ImageSet/voc/tf_record/train
   gpu_number: 2
 
 testing_info:
-  batch_size: 16
+  batch_size: 8
   save_image_dir: ./image_dir
-  check_points: ./checkpoint_dir
-  tf_record_path: /home/tcl/DataBack/voc/tf_record/test
+  check_points: ./checkpoint_dir_dsod
+  tf_record_path: /home/tcl/ImageSet/voc/tf_record/test
 
 inference_info:
 
 
 anchor_info:
+#  anchor_size:
+#    - [30, 60]
+#    - [60, 111]
+#    - [111, 162]
+#    - [162, 213]
+#    - [213, 264]
+#    - [264, 315]
   anchor_size:
-    - [30, 60]
-    - [60, 111]
-    - [111, 162]
-    - [162, 213]
-    - [213, 264]
+    - [21, 45]
+    - [45, 99]
+    - [99, 153]
+    - [153, 207]
+    - [207, 261]
     - [264, 315]
   anchor_ratios:
     - [2, 0.5]

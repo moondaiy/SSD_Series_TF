@@ -256,4 +256,4 @@ if __name__=="__main__":
     print("Convert Start ...")
     print(FLAGS)
 
-    convert_tf_record("Train")
+    convert_tf_record("Test")
