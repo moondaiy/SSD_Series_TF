@@ -32,7 +32,7 @@ def read_image_and_whiten(image_name, image_root, resize = 300, center_image = [
     return cv2.resize(image, (resize, resize)), image_whiten
 
 
-def read_image_with_dir(image_dir, resize = 300 , center_image = [_B_MEAN, _G_MEAN, R_MEAN] ):
+def read_image_with_dir(image_dir, resize = 300 , center_image = [R_MEAN ,_G_MEAN,  _B_MEAN] ):
 
 
     image_list = glob.glob(os.path.join(image_dir , "*.jpg"))
@@ -43,8 +43,10 @@ def read_image_with_dir(image_dir, resize = 300 , center_image = [_B_MEAN, _G_ME
     for image_path in image_list:
 
         image = cv2.imread(image_path)
-        image_whiten = cv2.resize(image,(resize,resize)) - center_image
+        image_whiten = cv2.cvtColor(cv2.resize(image,(resize,resize)), code=cv2.COLOR_BGR2RGB) - center_image
+
         image_original_array.append(cv2.resize(image,(resize,resize)))
+
         image_whiten_array.append(image_whiten)
 
     val_original = np.stack(image_original_array, axis=0)

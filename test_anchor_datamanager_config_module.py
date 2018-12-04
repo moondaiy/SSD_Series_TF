@@ -172,7 +172,7 @@ if __name__=="__main__":
                 cv2.waitKey(0)
                 judge_data_valid(image_name_batch[i], gt_label_batch[i], image_batch[i])
 
-            r_total_localization_loss, r_total_classification_loss, r_total_loss, r_localization  = sess.run([total_localization_loss, total_classification_loss, total_loss , net.net_out],feed_dict={net.labels :gt_label_batch, net.inputs : image_batch , net.is_training:True})
+            # r_total_localization_loss, r_total_classification_loss, r_total_loss, r_localization  = sess.run([total_localization_loss, total_classification_loss, total_loss , net.net_out],feed_dict={net.labels :gt_label_batch, net.inputs : image_batch , net.is_training:True})
 
             # for i in range(len(image_name_batch)):
             #
@@ -187,7 +187,7 @@ if __name__=="__main__":
 
 
 
-            print("localization loss is %f   classification loss  is %f  total loss is %f"%(r_total_localization_loss, r_total_classification_loss, r_total_loss))
+            # print("localization loss is %f   classification loss  is %f  total loss is %f"%(r_total_localization_loss, r_total_classification_loss, r_total_loss))
 
 
 

@@ -4,9 +4,10 @@ from __future__ import division
 from __future__ import print_function
 
 import cv2
+from test_utils.label_to_str_voc import convert_label_to_str
 
 
-def render_boxs_info_for_display(image, net_out, select_index, net_score, image_size):
+def render_boxs_info_for_display(image, net_out, select_index, net_score, image_size, label_out = None):
 
 
     valid_box = net_out[select_index]
@@ -15,12 +16,17 @@ def render_boxs_info_for_display(image, net_out, select_index, net_score, image_
     for index, value in enumerate(select_index):
 
         if net_score[index] > 0.5 and value == True:
+        # if value == True:
 
             valid_box = net_out[index]
             valid_score = net_score[index]
 
             print("current box info is " + str(valid_box))
             print("current box scores is " + str(valid_score))
+
+            if label_out is not None :
+                print("current label is %s"%(convert_label_to_str(label_out[index])))
+
 
             ymin = int(valid_box[0] * image_size)
             xmin = int(valid_box[1] * image_size)

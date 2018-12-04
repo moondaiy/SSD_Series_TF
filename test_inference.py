@@ -63,7 +63,7 @@ if __name__=="__main__":
 
         start_time = time.clock()
 
-        label_out, box_out, score_box, select_index = sess.run(model.finally_box, feed_dict={model.inputs:test_image_batch , model.is_training: False, model.select_threshold : 0.5, model.nms_threshold : 0.5})
+        label_out, box_out, score_box, select_index = sess.run(model.finally_box, feed_dict={model.inputs:test_image_batch , model.is_training: False, model.select_threshold : 0.2, model.nms_threshold : 0.5})
 
         end_time = time.clock()
 
@@ -73,7 +73,7 @@ if __name__=="__main__":
 
             print("------------------------------%s Start ----------------------------------------------")
 
-            image = render_boxs_info_for_display(original_image_batch[i], box_out[i], select_index[i], score_box[i], base_info["base_net_size"])
+            image = render_boxs_info_for_display(original_image_batch[i], box_out[i], select_index[i], score_box[i], base_info["base_net_size"], label_out[i])
 
             print("------------------------------%s End--------------------------------------------------")
 

@@ -80,7 +80,7 @@ if __name__=="__main__":
 
                 print("------------------------------%s Start ----------------------------------------------"%(image_name_batch[i]))
 
-                image = render_boxs_info_for_display(image, box_out[i], select_index[i], score_box[i], base_info["base_net_size"])
+                image = render_boxs_info_for_display(image, box_out[i], select_index[i], score_box[i], base_info["base_net_size"], label_out[i])
 
                 print("------------------------------%s End--------------------------------------------------"%(image_name_batch[i]))
 
