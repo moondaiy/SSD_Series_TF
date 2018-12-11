@@ -109,6 +109,8 @@ class Solver_multiple_GPU(object):
 
                     total_localization_loss, total_classification_loss, total_loss = model.build_loss(model.multibox_layer_out,model.labels,model.total_anchor_number)
 
+                    regular_loss = tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)
+                    total_loss = total_loss + tf.add_n(regular_loss)
                     # tf.get_variable_scope().reuse_variables()
 
                     grads = optimizer.compute_gradients(total_loss)
@@ -124,11 +126,6 @@ class Solver_multiple_GPU(object):
             total_localization_loss = self.average_loss(total_localization_loss_list)
             total_classification_loss = self.average_loss(total_classification_loss_list)
             total_loss = self.average_loss(total_loss_list)
-
-            #加入正则化损失,一般是用L2正则
-            regular_loss = tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)
-
-            total_loss = total_loss + tf.add_n(regular_loss)
 
             train_op = optimizer.apply_gradients(grads, global_step=self.global_step)
 
