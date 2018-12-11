@@ -233,7 +233,7 @@ class SSD_DenseNet(object):
 
     def build_ssd_loss(self,logitic_tensor, encode_gt_tensor, total_anchor_number, neg_pos_ratio = 3.0, min_negative_number = 0, alpha = 1.0):
 
-        total_localization_loss, total_classification_loss = ssd_loss.build_ssd_loss(logitic_tensor, encode_gt_tensor, total_anchor_number, neg_pos_ratio, min_negative_number, alpha)
+        total_localization_loss, total_classification_loss = ssd_loss.build_ssd_loss_adv(logitic_tensor, encode_gt_tensor, total_anchor_number, neg_pos_ratio, min_negative_number, alpha)
 
         total_loss = total_classification_loss + alpha * total_localization_loss
 

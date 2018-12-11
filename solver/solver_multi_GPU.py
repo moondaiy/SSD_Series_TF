@@ -39,18 +39,6 @@ class Solver_multiple_GPU(object):
         self.graph   = tf.get_default_graph()
         self.session = tf.Session(graph=self.graph, config=config)
 
-        # with self.graph.as_default() , tf.device('/cpu:0'):
-        #
-        #     #训练用的 step 计数
-        #     self.global_step = tf.Variable(0, name="global_step" , trainable=False)
-        #
-        #     #学习率配置
-        #     self.lr = tf.constant(self.train_init_learning, dtype=tf.float32)
-        #
-        #     #模型保存恢复和保存配置
-        #     self.saver = tf.train.Saver(tf.global_variables(), max_to_keep=4)
-
-
         #数据提供单元交给cpu进行
         with self.graph.as_default() , tf.device("/cpu:0"):
             self.data_provider = Data_Manager(self.training_info["tf_record_path"], self.training_info["batch_size"] * self.gpu_number, self.base_info["train_step"],
@@ -136,6 +124,11 @@ class Solver_multiple_GPU(object):
             total_localization_loss = self.average_loss(total_localization_loss_list)
             total_classification_loss = self.average_loss(total_classification_loss_list)
             total_loss = self.average_loss(total_loss_list)
+
+            #加入正则化损失,一般是用L2正则
+            regular_loss = tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)
+
+            total_loss = total_loss + tf.add_n(regular_loss)
 
             train_op = optimizer.apply_gradients(grads, global_step=self.global_step)
 

@@ -16,6 +16,8 @@ np.set_printoptions(suppress = True)
 
 def render_boxs_info_for_display(image, anchors, labels, scores, encode_box, original_ground_truth, scales, net_out, anchor_pos_iou = 0):
 
+    postive_number = 0
+
     for index, score in enumerate(scores):
 
         # print("current score is %f" % (score))
@@ -23,20 +25,24 @@ def render_boxs_info_for_display(image, anchors, labels, scores, encode_box, ori
 
         if score > 0:
 
-            print("encode gt box is  " + str(encode_box[index]))
-            # print("net out encode is " + str(net_out[index]))
+            postive_number += 1
 
-            decode_box = boxes_np_op.decode_boxes(np.expand_dims(encode_box[index],axis=0), np.expand_dims(anchors[index], axis=0), scales)
+            # print("encode gt box is  " + str(encode_box[index]))
+            # # print("net out encode is " + str(net_out[index]))
+            #
+            # decode_box = boxes_np_op.decode_boxes(np.expand_dims(encode_box[index],axis=0), np.expand_dims(anchors[index], axis=0), scales)
+            #
+            # print("current score is %f"%(score))
+            # print("anchor box : " + str(anchors[index]))
+            # print("decode gt box : " + str(decode_box))
+            # print("original gt box" + str(original_ground_truth[index]))
+            # print("current label :" + str(labels[index]))
+            #
+            # image = render_rectangle_box(image, anchors[index], colour=(0, 0, 255))
+            # image = render_rectangle_box(image, decode_box[0], colour=(0, 255, 0))
+            # image = render_rectangle_box(image, original_ground_truth[index], colour=(255, 0, 0), offset = 3, thickness=2)
 
-            print("current score is %f"%(score))
-            print("anchor box : " + str(anchors[index]))
-            print("decode gt box : " + str(decode_box))
-            print("original gt box" + str(original_ground_truth[index]))
-            print("current label :" + str(labels[index]))
-
-            image = render_rectangle_box(image, anchors[index], colour=(0, 0, 255))
-            image = render_rectangle_box(image, decode_box[0], colour=(0, 255, 0))
-            image = render_rectangle_box(image, original_ground_truth[index], colour=(255, 0, 0), offset = 3, thickness=2)
+    print("Total postive number is %d"%(postive_number))
 
     return image
 
@@ -130,7 +136,7 @@ if __name__=="__main__":
                                anchor_offset=anchor_offset)
 
 
-    batch_size = 16
+    batch_size = 2
     image_size = 300
 
     data_provider  = data_manager.Data_Manager(tf_record_path, batch_size, is_training, image_size, all_anchors, class_numer, scale_factors, anchor_pos_iou)
@@ -145,7 +151,14 @@ if __name__=="__main__":
 
     total_localization_loss, total_classification_loss, total_loss = net.build_loss(net.multibox_layer_out, net.labels, net.total_anchor_number)
 
+    regular_loss = tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)
+
+    total_loss = total_loss + tf.add_n(regular_loss)
+
     init_op = [tf.global_variables_initializer(), tf.local_variables_initializer()]
+
+    neg_number = tf.get_collection('neg_number')
+    pos_number = tf.get_collection('pos_number')
 
     with tf.Session() as sess:
 
@@ -167,12 +180,12 @@ if __name__=="__main__":
                 image = render_boxs_info_for_display(image_batch[i], all_anchors, gt_label_batch[i][:,:21], gt_label_batch[i][:, 25], gt_label_batch[i][:, 21:25], gt_label_batch[i][:, 26:30], scale_factors, None, anchor_pos_iou)
 
                 print("------------------------------%s  display end -------------------------------------------------------"%(image_name_batch[i]))
+                #
+                # cv2.imshow("boxs_info_display", image.astype(np.uint8))
+                # cv2.waitKey(0)
+                # judge_data_valid(image_name_batch[i], gt_label_batch[i], image_batch[i])
 
-                cv2.imshow("boxs_info_display", image.astype(np.uint8))
-                cv2.waitKey(0)
-                judge_data_valid(image_name_batch[i], gt_label_batch[i], image_batch[i])
-
-            # r_total_localization_loss, r_total_classification_loss, r_total_loss, r_localization  = sess.run([total_localization_loss, total_classification_loss, total_loss , net.net_out],feed_dict={net.labels :gt_label_batch, net.inputs : image_batch , net.is_training:True})
+            r_total_localization_loss, r_total_classification_loss, r_total_loss, r_localization,r_neg_number, r_pos_number  = sess.run([total_localization_loss, total_classification_loss, total_loss , net.net_out, neg_number, pos_number],feed_dict={net.labels :gt_label_batch, net.inputs : image_batch , net.is_training:True})
 
             # for i in range(len(image_name_batch)):
             #
@@ -187,8 +200,9 @@ if __name__=="__main__":
 
 
 
-            # print("localization loss is %f   classification loss  is %f  total loss is %f"%(r_total_localization_loss, r_total_classification_loss, r_total_loss))
-
+            print("localization loss is %f   classification loss  is %f  total loss is %f"%(r_total_localization_loss, r_total_classification_loss, r_total_loss))
+            print("r_neg_number is " + str(r_neg_number))
+            print("r_pos_number is " + str(r_pos_number))
 
 
 
