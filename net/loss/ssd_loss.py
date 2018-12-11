@@ -247,8 +247,8 @@ def build_ssd_loss_adv(logistic_tensor, ground_truth_box_label_scores_tensor, to
 
     loc_loss = build_smooth_L1_loss(pre_valid_bbox, ground_valid_bbox, 1.0)
 
-    #测试使用
-    tf.add_to_collection('neg_number', batch_neg_sample_valid_number)
-    tf.add_to_collection('pos_number', batch_pos_sample_max_number)
+    # #测试使用
+    # tf.add_to_collection('neg_number', batch_neg_sample_valid_number)
+    # tf.add_to_collection('pos_number', batch_pos_sample_max_number)
 
     return loc_loss, cross_entropy
