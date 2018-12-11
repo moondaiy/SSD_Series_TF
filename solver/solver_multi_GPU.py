@@ -27,7 +27,7 @@ class Solver_multiple_GPU(object):
 
         self.gpu_number = self.training_info["gpu_number"]
         self.train_max_epoch        = self.training_info["max_epoch"]
-        self.train_batch_size       = self.training_info["batch_size"]
+        self.train_batch_size       = self.training_info["batch_size"] * self.gpu_number
         self.train_init_learning    = self.training_info["learn_ratio"]
         self.number_epoch_for_decay = self.training_info["number_epoch_for_decay"]
         self.decay_rate             = self.training_info["decay_rate"]

@@ -10,14 +10,14 @@ training_info:
   train_restore_flag: False
   max_epoch: 2000
   batch_size:  8
-  learn_ratio: 0.001
+  learn_ratio: 0.005
   learn_ratio_change_step:
     - 0
     - 0.1
   #optimizer_type: sgd_optimizer
   optimizer_type: adam_optimizer
   momentum: 0.9
-  number_epoch_for_decay: 2
+  number_epoch_for_decay: 3
   decay_rate: 0.9
 
   check_points: ./checkpoint_dir
@@ -25,7 +25,7 @@ training_info:
   group_number : 4
   log_dir: ./log
   save_image_dir: ./image_dir
-  tf_record_path: /home/tcl/ImageSet/voc/tf_record/train
+  tf_record_path: /home/tcl/DataBack/voc/tf_record/train
   gpu_number: 2
 
 testing_info:
