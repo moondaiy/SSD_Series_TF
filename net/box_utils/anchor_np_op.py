@@ -6,11 +6,22 @@ from __future__ import print_function
 import math
 import numpy as np
 
+
+
+
+def clip_anchor(ymin, xmin, ymax, xmax):
+
+    new_ymin = np.maximum(ymin, 0.0)
+    new_xmin = np.maximum(xmin, 0.0)
+    new_ymax = np.minimum(ymax, 1.0)
+    new_xmax = np.minimum(xmax, 1.0)
+
+    return new_ymin, new_xmin, new_ymax, new_xmax
 #paper中Smax - Smin = 0.9 - 0.2 这个而参数可以自行更改
 #Sk = Smin + (Smax - Smin)/(m - 1)  * (k - 1) k 属于[1, m] m= 5 第一层的anchor设置不符合该公式
 #第一层conv4_3 上的anchors尺寸 Smin/2 = 0.1  (假设是300 图像大小 则 Base anchor size = 30)
 #base_anchor_sizes = [(30 60), (60 111), (111 162), (162 213), (213, 264), (264 315)] 这些值得可以根据自己需要进行更改
-def make_one_layer_base_anchor(image_shape, base_anchor_sizes, anchor_ratios, anchor_strides, feature_height, feathre_width, offset=0.5,style="coord"):
+def make_one_layer_base_anchor(image_shape, base_anchor_sizes, anchor_ratios, anchor_strides, feature_height, feathre_width, offset=0.5,style="coord", clip = False):
     """
     :param image_shape:       图像大小
     :param base_anchor_sizes: 基础anchor尺寸 相对于原图的
@@ -82,6 +93,10 @@ def make_one_layer_base_anchor(image_shape, base_anchor_sizes, anchor_ratios, an
         ymax = y + hs / 2
         xmax = x + ws/2
 
+        if clip == True:
+
+            ymin, xmin, ymax, xmax = clip_anchor(ymin, xmin, ymax, xmax)
+
         return np.concatenate((ymin,xmin,ymax,xmax),axis=1)
 
     elif style == "center":
@@ -92,7 +107,10 @@ def make_one_layer_base_anchor(image_shape, base_anchor_sizes, anchor_ratios, an
 
         raise Exception("make_one_layer_base_anchor support style : coord ,center")
 
-def make_anchors_for_all_layer(image_height,image_width, base_anchor_sizes, anchor_ratios, anchor_strides, feat_shapes, anchor_offset=0.5):
+
+
+
+def make_anchors_for_all_layer(image_height,image_width, base_anchor_sizes, anchor_ratios, anchor_strides, feat_shapes, anchor_offset=0.5,clip = True):
     """
     :param image_height: 图像高度
     :param image_width:  图像宽度

@@ -11,11 +11,11 @@ import cv2
 #
 tf.app.flags.DEFINE_string('xml_dir', 'Annotations', 'xml dir')
 tf.app.flags.DEFINE_string('img_dir', 'JPEGImages' , 'img dir')
-tf.app.flags.DEFINE_string("VOC_root_dir","/home/tcl/ImageSet/voc", "train dir(2012 or 2007)")
+tf.app.flags.DEFINE_string("VOC_root_dir","/home/tcl/DataBack/voc", "train dir(2012 or 2007)")
 tf.app.flags.DEFINE_string("VOC_train_dir","VOC_Train", "train dir(2012 or 2007)")
 tf.app.flags.DEFINE_string("VOC_test_dir", "VOC_Test", "test dir(2012 or 2007)")
-tf.app.flags.DEFINE_string('train_save_path', '/home/tcl/ImageSet/voc/tf_record/train', 'train save name')
-tf.app.flags.DEFINE_string('test_save_path',  '/home/tcl/ImageSet/voc/tf_record/test', 'train save name')
+tf.app.flags.DEFINE_string('train_save_path', '/home/tcl/DataBack/voc/tf_record/train', 'train save name')
+tf.app.flags.DEFINE_string('test_save_path',  '/home/tcl/DataBack/voc/tf_record/test', 'train save name')
 tf.app.flags.DEFINE_string('tf_train_save_dir', 'train', 'train save dir')
 tf.app.flags.DEFINE_string('tf_test_save_dir',  'test', 'train save dir')
 tf.app.flags.DEFINE_string('img_format', '.jpg', 'format of image')
@@ -221,9 +221,9 @@ def do_convert_tf_record(image_path, xml_path, type, record_save_path, count):
         #测试
         counter += 1
 
-        # if counter >= 10:
-        #     print("%d Test Image is OK ....."%(counter))
-        #     break
+        if counter >= 10:
+            print("%d Test Image is OK ....."%(counter))
+            break
 
 def convert_tf_record(step="Train"):
 
@@ -237,6 +237,8 @@ def convert_tf_record(step="Train"):
             type = xml_path.split('/')[-2]
 
             do_convert_tf_record(image_path, xml_path, type, FLAGS.train_save_path, 0)
+
+            break
 
     elif step == "Test":
 
@@ -256,4 +258,4 @@ if __name__=="__main__":
     print("Convert Start ...")
     print(FLAGS)
 
-    convert_tf_record("Test")
+    convert_tf_record("Train")

@@ -8,17 +8,23 @@ base_info:
 
 training_info:
   train_restore_flag: False
-  max_epoch: 2000
+  max_epoch: 650
   batch_size:  8
-  learn_ratio: 0.005
-  learn_ratio_change_step:
-    - 0
-    - 0.1
-  #optimizer_type: sgd_optimizer
-  optimizer_type: adam_optimizer
+  learn_ratio: 0.1
+
+  learn_ratio_change_ratio: 8
+  learn_ratio_change_boundaries:
+    - 20000
+    - 40000
+    - 60000
+    - 80000
+
+  learn_ration_decay: 0.1
+  optimizer_type: sgd_optimizer
+#  optimizer_type: adam_optimizer
   momentum: 0.9
-  number_epoch_for_decay: 3
-  decay_rate: 0.9
+  number_epoch_for_decay: 25
+  decay_rate: 0.95
 
   check_points: ./checkpoint_dir
   use_batch_norm: True
@@ -91,12 +97,12 @@ extract_feature_info:
     - "5"
     - "6"
   extract_feature_normalization:
-    - 1.
-    - 1.
-    - 1.
-    - 1.
-    - 1.
-    - 1.
+    - 20.
+    - 20.
+    - 20.
+    - 20.
+    - 20.
+    - 20.
 
 loss_info:
   neg_pos_ratio: 3.0

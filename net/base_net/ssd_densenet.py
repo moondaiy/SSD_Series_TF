@@ -197,7 +197,7 @@ class SSD_DenseNet(object):
     def single_multibox_layer(self,inputs, class_number, anchor_base_size, anchor_ratio, normalization_factor , current_feature_size_h, current_feature_size_w, scope_name):
 
         nets = inputs
-        bias = True
+        bias = False
 
         if normalization_factor != 0:
 
@@ -219,7 +219,7 @@ class SSD_DenseNet(object):
         #loc   信息获得
         loc_pred_name = scope_name + "_location"
         loc_pred = getLayer.convolution_layer(nets, num_loc_pred_number, 3, 3, 1, 1, loc_pred_name, biased=bias)
-        loc_pred = getLayer.group_normalization_layer(loc_pred , num_anchors , loc_pred_name + "bn")
+        loc_pred = getLayer.group_normalization_layer(loc_pred , num_anchors , loc_pred_name + "bn") #num_anchors
         loc_pred = tf.reshape(loc_pred, shape=reshape_loc_tesnor)
 
         #class 信息获得

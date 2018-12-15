@@ -54,13 +54,14 @@ def get_regularizer(regular=DEFAULT_REGULAR, weight_decay=DEFAULT_WEIGHT_DECAY, 
 
 def get_variable(name, shape, initializer=None, trainable=True, regularizer=None):
 
-    var = tf.get_variable(name, shape, initializer=initializer, trainable = trainable, regularizer=regularizer)
+    var = tf.get_variable(name, shape, initializer=initializer, trainable = trainable, regularizer=None) #正则项损失 手动计算
 
     return var
 
-def get_variable_with_fixed_value(name, value, trainable=True , regularizer=None):
+def get_variable_with_fixed_value(value , name, trainable=True):
 
-    var = tf.get_variable(name, initializer=value, trainable=trainable, regularizer=regularizer)
+    # var = tf.Variable(value, trainable=trainable, name=name)
+    var = tf.get_variable(name, initializer=value, trainable=trainable, regularizer=None)
 
     return var
 
@@ -81,6 +82,7 @@ def get_convolution_variable(channel_in, channel_out, kernel_h, kernel_w, biased
 
     kernel = get_variable('weights', [kernel_h, kernel_w, channel_in, channel_out], \
                           init_weights, trainable, regularizer=get_regularizer(regular, weight_decay))
+
 
     if biased == True:
 
@@ -133,11 +135,8 @@ def get_group_normalization_variable(shape):
 
     return beta, gamma
 
-def get_l2_normalization_variable(shape,scale_factor = 1.0):
+def get_l2_normalization_variable( init_value, trainable = True):
 
-    # init_value = tf.constant(scale_factor, shape=shape)
-    #
-    # scale = get_variable_with_fixed_value('scale', init_value)
-    scale = get_variable('scale', shape, initializer=tf.ones_initializer())
+    value = get_variable_with_fixed_value(init_value, name="l2_scale", trainable=trainable)
 
-    return scale * scale_factor
+    return value

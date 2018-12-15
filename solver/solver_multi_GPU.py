@@ -59,6 +59,13 @@ class Solver_multiple_GPU(object):
                 model = SSD_Net(self.base_info, self.anchor_info, self.extract_feature_info, anchors.get_anchors(), self.loss_info,
                                 extra_input=False , input_image_batch = image_batch_splits[i], input_label_batch=gt_label_batch_splits[i])
 
+                # l2_loss_var = []
+                #
+                # for vars in tf.trainable_variables():
+                #     if "beta" not in vars.name and "gamma" not in vars.name:
+                #         a = tf.nn.l2_loss(vars)
+                #         l2_loss_var.append(tf.nn.l2_loss(vars))
+
                 self.model_list.append(model)
 
 
@@ -72,14 +79,32 @@ class Solver_multiple_GPU(object):
         self.check_point_dir =  self.training_info["check_points"]
         self.use_batch_norm  =  self.training_info["use_batch_norm"]
 
+        #sgd 优化
+        self.learn_ratio_change_ratio = self.training_info["learn_ratio_change_ratio"]
+
+        #更改学习率变更 steps
+        self.learn_change_boundaries = self.training_info["learn_ratio_change_boundaries"]
+        self.learn_change_boundaries = [value * self.learn_ratio_change_ratio for value in self.learn_change_boundaries]
+
+        self.learn_ration_boundaries = []
+        self.learn_ration_decay      = self.training_info["learn_ration_decay"]
+        self.momentum                = self.training_info["momentum"]
+
+
+        for i in range(len(self.learn_change_boundaries) + 1):
+
+            self.learn_ration_boundaries.append(self.train_init_learning * pow(self.learn_ration_decay, i))
+
         with self.graph.as_default() , tf.device('/cpu:0'):
 
             #训练用的 step 计数
             self.global_step = tf.Variable(0, name="global_step" , trainable=False)
 
-            decay_steps = int(self.train_batch_per_epoch * self.number_epoch_for_decay)
+            # decay_steps = int(self.train_batch_per_epoch * self.number_epoch_for_decay)
+            #07 + 12 22136 图片
             #学习率配置
-            self.lr = tf.train.exponential_decay(learning_rate = self.train_init_learning, global_step =  self.global_step,  decay_steps = decay_steps, decay_rate = self.decay_rate)
+            # self.lr = tf.train.exponential_decay(learning_rate = self.train_init_learning, global_step =  self.global_step,  decay_steps = decay_steps, decay_rate = self.decay_rate)
+            self.lr = tf.train.piecewise_constant(self.global_step, boundaries=self.learn_change_boundaries, values=self.learn_ration_boundaries)
 
             #模型保存恢复和保存配置
             self.saver = tf.train.Saver(tf.global_variables(), max_to_keep=4)
@@ -94,7 +119,7 @@ class Solver_multiple_GPU(object):
 
             with tf.variable_scope("optimizer_vars"):
 
-                optimizer = self.get_optimizer()(self.lr)
+                optimizer = self.get_optimizer()(self.lr, self.momentum)
 
             tower_grads = []
             total_localization_loss_list = []
@@ -103,23 +128,42 @@ class Solver_multiple_GPU(object):
 
             for i in range(self.gpu_number):
 
-                with tf.device('/gpu:%d' % i), tf.variable_scope(name_or_scope=tf.get_variable_scope(), reuse= tf.AUTO_REUSE):
+                with tf.device('/gpu:%d' % i):
+                    # with tf.name_scope('GPU_%d' % i) as scope:
+                        with tf.variable_scope(name_or_scope=tf.get_variable_scope(), reuse=tf.AUTO_REUSE):
 
-                    model = self.model_list[i]
+                            model = self.model_list[i]
 
-                    total_localization_loss, total_classification_loss, total_loss = model.build_loss(model.multibox_layer_out,model.labels,model.total_anchor_number)
+                            total_localization_loss, total_classification_loss, total_loss = model.build_loss(model.multibox_layer_out,model.labels,model.total_anchor_number)
 
-                    regular_loss = tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)
-                    total_loss = total_loss + tf.add_n(regular_loss)
-                    # tf.get_variable_scope().reuse_variables()
+                            l2_loss_var = []
 
-                    grads = optimizer.compute_gradients(total_loss)
+                            for vars in tf.trainable_variables():
+                                if "beta" not in vars.name and "gamma" not in vars.name :#and "l2_scale" not in vars.name:
 
-                    tower_grads.append(grads)
+                                    if "l2_scale" not in vars.name:
 
-                    total_localization_loss_list.append(total_localization_loss)
-                    total_classification_loss_list.append(total_classification_loss)
-                    total_loss_list.append(total_loss)
+                                        l2_loss_var.append(tf.nn.l2_loss(vars))
+
+                                    else:
+
+                                        l2_loss_var.append(tf.nn.l2_loss(vars) * 0.1)
+
+                            #计算正则化损失函数
+                            regular_loss = tf.add_n(l2_loss_var) * 0.0005
+
+                            # regular_loss = tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)
+                            # regular_loss = tf.add_n(l2_loss_var)
+                            total_loss = total_loss + regular_loss
+                            # tf.get_variable_scope().reuse_variables()
+
+                            grads = optimizer.compute_gradients(total_loss)
+
+                            tower_grads.append(grads)
+
+                            total_localization_loss_list.append(total_localization_loss)
+                            total_classification_loss_list.append(total_classification_loss)
+                            total_loss_list.append(total_loss)
 
             grads = self.average_gradients(tower_grads)
 
@@ -232,7 +276,8 @@ class Solver_multiple_GPU(object):
 
     def average_loss(self, loss_list):
 
-        tf_loss = tf.concat(loss_list , axis=0)
+        # tf_loss = tf.concat(loss_list , axis=0)
+        tf_loss = tf.stack(loss_list, axis=0)
         mean_loss = tf.reduce_mean(tf_loss)
 
         return mean_loss

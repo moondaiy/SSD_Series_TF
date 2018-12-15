@@ -471,19 +471,21 @@ def normalization_l2_layer(inputs, scale_factor, scope_name):
 
         norm_dim = tf.range(inputs_rank - 1, inputs_rank)
 
-        params_shape = inputs_shape[-1:]
+        params_shape = inputs_shape.as_list()[-1:]
 
         outputs = tf.nn.l2_normalize(inputs, norm_dim, epsilon=1e-12)
 
         if scale_factor > 0:
 
-            scale_factor_var = get_l2_normalization_variable(params_shape, scale_factor)
+            init_value = tf.constant(value = scale_factor, shape=params_shape, dtype=tf.float32)
+
+            scale_factor_var = get_l2_normalization_variable(init_value, trainable=True)
 
         else:
 
-            scale_factor_var = 1.0
+            scale_factor_var = [1.0] * params_shape
 
-        return outputs * scale_factor_var
+        return tf.multiply(tf.reshape(scale_factor_var,[1,1,1,-1]) , outputs )
 
 
 

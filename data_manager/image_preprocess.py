@@ -16,47 +16,49 @@ def sample_distorted_bounding_box_crop(image,labels,bboxes,min_object_covered=0.
                                        area_range=(0.80, 1.0),
                                        max_attempts=200):
 
-    def box_translate(bbox_ref, bboxes):
+    return image, labels, bboxes, None
 
-        v = tf.stack([bbox_ref[0], bbox_ref[1], bbox_ref[0], bbox_ref[1]])
-
-        bboxes = bboxes - v
-        # Scale.
-        s = tf.stack([bbox_ref[2] - bbox_ref[0],
-                      bbox_ref[3] - bbox_ref[1],
-                      bbox_ref[2] - bbox_ref[0],
-                      bbox_ref[3] - bbox_ref[1]])
-
-        bboxes = bboxes / s
-
-        return bboxes
-
-    bbox_begin, bbox_size, distort_bbox = tf.image.sample_distorted_bounding_box(
-        tf.shape(image),
-        bounding_boxes=tf.expand_dims(bboxes, 0),
-        min_object_covered=min_object_covered,
-        aspect_ratio_range=aspect_ratio_range,
-        area_range=area_range,
-        max_attempts=max_attempts,
-        use_image_if_no_bounding_boxes=True)
-
-    distort_bbox = distort_bbox[0,0]
-
-    # Crop the image to the specified bounding box.
-    cropped_image = tf.slice(image, bbox_begin, bbox_size)
-    # Restore the shape since the dynamic slice loses 3rd dimension.
-
-    cropped_image.set_shape([None, None, 3])
-
-    # #因为图像被crop了因此,原先的bound box坐标也需要进行变换才行
-    translate_bboxes = box_translate(distort_bbox, bboxes)
-
-    #删除那些经过crop后和过于小的box ,这地方后续进行处理,如果 gt box已经不在 crop 后的图像中的话,则舍弃该box
-    labels , translate_bboxes = box_filter_with_iou_for_preprocess(tf.constant([[0,0,1,1]],dtype=translate_bboxes.dtype), translate_bboxes, labels, threshold=0.01, assign_negative=False)
-
-    translate_bboxes = clip_boxes_to_img_boundaries(translate_bboxes)
-
-    return cropped_image, labels, translate_bboxes, distort_bbox
+    # def box_translate(bbox_ref, bboxes):
+    #
+    #     v = tf.stack([bbox_ref[0], bbox_ref[1], bbox_ref[0], bbox_ref[1]])
+    #
+    #     bboxes = bboxes - v
+    #     # Scale.
+    #     s = tf.stack([bbox_ref[2] - bbox_ref[0],
+    #                   bbox_ref[3] - bbox_ref[1],
+    #                   bbox_ref[2] - bbox_ref[0],
+    #                   bbox_ref[3] - bbox_ref[1]])
+    #
+    #     bboxes = bboxes / s
+    #
+    #     return bboxes
+    #
+    # bbox_begin, bbox_size, distort_bbox = tf.image.sample_distorted_bounding_box(
+    #     tf.shape(image),
+    #     bounding_boxes=tf.expand_dims(bboxes, 0),
+    #     min_object_covered=min_object_covered,
+    #     aspect_ratio_range=aspect_ratio_range,
+    #     area_range=area_range,
+    #     max_attempts=max_attempts,
+    #     use_image_if_no_bounding_boxes=True)
+    #
+    # distort_bbox = distort_bbox[0,0]
+    #
+    # # Crop the image to the specified bounding box.
+    # cropped_image = tf.slice(image, bbox_begin, bbox_size)
+    # # Restore the shape since the dynamic slice loses 3rd dimension.
+    #
+    # cropped_image.set_shape([None, None, 3])
+    #
+    # # #因为图像被crop了因此,原先的bound box坐标也需要进行变换才行
+    # translate_bboxes = box_translate(distort_bbox, bboxes)
+    #
+    # #删除那些经过crop后和过于小的box ,这地方后续进行处理,如果 gt box已经不在 crop 后的图像中的话,则舍弃该box
+    # labels , translate_bboxes = box_filter_with_iou_for_preprocess(tf.constant([[0,0,1,1]],dtype=translate_bboxes.dtype), translate_bboxes, labels, threshold=0.01, assign_negative=False)
+    #
+    # translate_bboxes = clip_boxes_to_img_boundaries(translate_bboxes)
+    #
+    # return cropped_image, labels, translate_bboxes, distort_bbox
 
 def box_info_normilization(gt_box_and_label_tensor, image_height, image_width):
 
