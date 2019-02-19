@@ -174,7 +174,7 @@ def read_xml_gtbox_and_label(xml_path):
 
     return img_height, img_width, gtbox_label
 
-def do_convert_tf_record(image_path, xml_path, type, record_save_path, count):
+def do_convert_tf_record(image_path, xml_path, type, record_save_path, number = None):
 
     xml_list = glob.glob(xml_path + "/*.xml")
 
@@ -221,11 +221,11 @@ def do_convert_tf_record(image_path, xml_path, type, record_save_path, count):
         #测试
         counter += 1
 
-        if counter >= 10:
+        if number is not None and counter >= number:
             print("%d Test Image is OK ....."%(counter))
             break
 
-def convert_tf_record(step="Train"):
+def convert_tf_record(step="Train", number = None):
 
     train_image_path, train_xml_path, test_image_path, test_xml_path = get_source_from_flags()
 
@@ -236,7 +236,7 @@ def convert_tf_record(step="Train"):
 
             type = xml_path.split('/')[-2]
 
-            do_convert_tf_record(image_path, xml_path, type, FLAGS.train_save_path, 0)
+            do_convert_tf_record(image_path, xml_path, type, FLAGS.train_save_path, number)
 
             break
 
@@ -246,7 +246,7 @@ def convert_tf_record(step="Train"):
 
             type = xml_path.split('/')[-2]
 
-            do_convert_tf_record(image_path, xml_path, type, FLAGS.test_save_path, 0)
+            do_convert_tf_record(image_path, xml_path, type, FLAGS.test_save_path, number)
 
 
 
@@ -258,4 +258,4 @@ if __name__=="__main__":
     print("Convert Start ...")
     print(FLAGS)
 
-    convert_tf_record("Train")
+    convert_tf_record("Train", number = 10)
