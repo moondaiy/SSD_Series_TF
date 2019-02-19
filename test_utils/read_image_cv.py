@@ -35,7 +35,7 @@ def read_image_and_whiten(image_name, image_root, resize = 300, center_image = [
 def read_image_with_dir(image_dir, resize = 300 , center_image = [R_MEAN ,_G_MEAN,  _B_MEAN] ):
 
 
-    image_list = glob.glob(os.path.join(image_dir , "*.jpg"))
+    image_list = glob.glob(os.path.join(image_dir , "*.jp*g"))
 
     image_original_array = []
     image_whiten_array = []
