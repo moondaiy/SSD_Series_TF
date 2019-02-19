@@ -54,6 +54,7 @@ class Solver(object):
 
             #学习率配置
             self.lr = tf.constant(self.train_init_learning, dtype=tf.float32)
+            self.momentum = self.training_info["momentum"]
 
             #模型保存恢复和保存配置
             self.saver = tf.train.Saver(tf.global_variables(), max_to_keep=4)
@@ -70,7 +71,7 @@ class Solver(object):
 
                 optimizer = self.get_optimizer()
 
-                train_op = optimizer(learning_rate=self.train_init_learning).minimize(total_loss, global_step=self.global_step)
+                train_op = optimizer(learning_rate=self.train_init_learning, momentum = self.momentum).minimize(total_loss, global_step=self.global_step)
 
 
             with self.session.as_default() as sess:
