@@ -170,7 +170,7 @@ class SSD_VGG(object):
 
 
 
-    def single_multibox_layer(self,inputs, class_number, anchor_base_size, anchor_ratio, normalization_factor , current_feature_size_h, current_feature_size_w, scope_name):
+    def single_multibox_layer(self,inputs, class_number, anchor_base_size, anchor_ratio, normalization_factor , current_feature_size_h, current_feature_size_w, is_train, scope_name):
 
         nets = inputs
 
@@ -204,7 +204,7 @@ class SSD_VGG(object):
 
         return loc_pred, cls_pred
 
-    def build_multibox_layer(self, input_list, input_name_list, class_number, anchor_base_size_list, anchor_ratio_list, normalization_list, feature_size_list):
+    def build_multibox_layer(self, input_list, input_name_list, class_number, anchor_base_size_list, anchor_ratio_list, normalization_list, feature_size_list, is_train):
 
         loc_pre_list = []
         cls_pre_list = []
@@ -221,7 +221,7 @@ class SSD_VGG(object):
 
             current_scope_name = current_layer_name + "_multibox_layer"
 
-            current_loc_pred, current_cls_pred = self.single_multibox_layer(current_input, class_number, current_anchor_base_size, current_anchor_ratio, current_normalization_factor, current_feature_size_h, current_feature_size_w, current_scope_name)
+            current_loc_pred, current_cls_pred = self.single_multibox_layer(current_input, class_number, current_anchor_base_size, current_anchor_ratio, current_normalization_factor, current_feature_size_h, current_feature_size_w, is_train, current_scope_name)
 
             loc_pre_list.append(current_loc_pred)
             cls_pre_list.append(current_cls_pred)

@@ -18,7 +18,7 @@ class SSD_DenseNet(object):
 
     def dense_feature_extract_300(self, inputs, is_training, extra_info=None):
 
-        self.is_training = is_training
+        # self.is_training = is_training
 
         end_points = {}
         bias = False
@@ -163,7 +163,7 @@ class SSD_DenseNet(object):
         return out
 
 
-    def build_multibox_layer(self, input_list, input_name_list, class_number, anchor_base_size_list, anchor_ratio_list, normalization_list, feature_size_list):
+    def build_multibox_layer(self, input_list, input_name_list, class_number, anchor_base_size_list, anchor_ratio_list, normalization_list, feature_size_list, is_train):
 
         loc_pre_list = []
         cls_pre_list = []
@@ -180,7 +180,7 @@ class SSD_DenseNet(object):
 
             current_scope_name = current_layer_name + "_multibox_layer"
 
-            current_loc_pred, current_cls_pred = self.single_multibox_layer(current_input, class_number, current_anchor_base_size, current_anchor_ratio, current_normalization_factor, current_feature_size_h, current_feature_size_w, current_scope_name)
+            current_loc_pred, current_cls_pred = self.single_multibox_layer(current_input, class_number, current_anchor_base_size, current_anchor_ratio, current_normalization_factor, current_feature_size_h, current_feature_size_w, is_train, current_scope_name)
 
             loc_pre_list.append(current_loc_pred)
             cls_pre_list.append(current_cls_pred)
@@ -194,10 +194,11 @@ class SSD_DenseNet(object):
         return logistic_tensor
 
 
-    def single_multibox_layer(self,inputs, class_number, anchor_base_size, anchor_ratio, normalization_factor , current_feature_size_h, current_feature_size_w, scope_name):
+    def single_multibox_layer(self,inputs, class_number, anchor_base_size, anchor_ratio, normalization_factor , current_feature_size_h, current_feature_size_w, is_train, scope_name):
 
         nets = inputs
         bias = False
+        is_training = True
 
         if normalization_factor != 0:
 
@@ -219,13 +220,15 @@ class SSD_DenseNet(object):
         #loc   信息获得
         loc_pred_name = scope_name + "_location"
         loc_pred = getLayer.convolution_layer(nets, num_loc_pred_number, 3, 3, 1, 1, loc_pred_name, biased=bias)
-        loc_pred = getLayer.group_normalization_layer(loc_pred , num_anchors , loc_pred_name + "bn") #num_anchors
+        # loc_pred = getLayer.group_normalization_layer(loc_pred , num_anchors , loc_pred_name + "bn") #num_anchors
+        loc_pred = getLayer.normalization_layer(loc_pred, is_train, loc_pred_name + "bn", "bn", num_anchors, True)
         loc_pred = tf.reshape(loc_pred, shape=reshape_loc_tesnor)
 
         #class 信息获得
         cls_pred_name = scope_name + "_classfication"
         cls_pred = getLayer.convolution_layer(nets, num_cls_pred_number, 3, 3, 1, 1, cls_pred_name, biased=bias)
-        cls_pred = getLayer.group_normalization_layer(cls_pred, num_anchors , cls_pred_name + "bn")
+        # cls_pred = getLayer.group_normalization_layer(cls_pred, num_anchors , cls_pred_name + "bn")
+        cls_pred = getLayer.normalization_layer(cls_pred, is_train, cls_pred_name + "bn", "bn", num_anchors, True)
         cls_pred = tf.reshape(cls_pred, shape=reshape_cls_tesnor)
 
         return loc_pred, cls_pred

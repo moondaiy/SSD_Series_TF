@@ -72,7 +72,7 @@ class SSD_Net(object):
             #[0] 保存 loc
             #[1] 保存 cls
             # multibox_layer_out 给 计算loss的时候使用
-            self.multibox_layer_out = self.build_multibox_layer(self.valid_feature_out, self.valid_feature_layer_info["extract_feature_valid_layer"], self.class_number, self.anchors_info["anchor_size"], self.anchors_info["anchor_ratios"], self.valid_feature_layer_info["extract_feature_normalization"], self.anchors_info["feature_shape"])
+            self.multibox_layer_out = self.build_multibox_layer(self.valid_feature_out, self.valid_feature_layer_info["extract_feature_valid_layer"], self.class_number, self.anchors_info["anchor_size"], self.anchors_info["anchor_ratios"], self.valid_feature_layer_info["extract_feature_normalization"], self.anchors_info["feature_shape"],self.is_training)
 
             self.net_out = self.build_net_out(self.multibox_layer_out)
 
@@ -117,9 +117,9 @@ class SSD_Net(object):
 
         return feature_layer_out
 
-    def build_multibox_layer(self, input_list, input_name_list, class_number, anchor_base_size_list, anchor_ratio_list, normalization_list, feature_size_list):
+    def build_multibox_layer(self, input_list, input_name_list, class_number, anchor_base_size_list, anchor_ratio_list, normalization_list, feature_size_list,is_train):
 
-        multibox_layer_out = self.ssd_instance.build_multibox_layer(input_list, input_name_list, class_number, anchor_base_size_list, anchor_ratio_list, normalization_list, feature_size_list)
+        multibox_layer_out = self.ssd_instance.build_multibox_layer(input_list, input_name_list, class_number, anchor_base_size_list, anchor_ratio_list, normalization_list, feature_size_list,is_train)
 
         return multibox_layer_out
 
@@ -179,6 +179,14 @@ class SSD_Net(object):
             #解码操作
             current_predict_decode_bbox  = decode_boxes(current_predict_encode_bbox, anchor_tensor, scale_factors)
 
+            clip_current_predict_decode_bbox_ymin  = tf.expand_dims(tf.maximum(current_predict_decode_bbox[:, 0],  0.0),axis=1)
+            clip_current_predict_decode_bbox_xmin  = tf.expand_dims(tf.maximum(current_predict_decode_bbox[:, 1], 0.0),axis=1)
+
+            clip_current_predict_decode_bbox_ymax  = tf.expand_dims(tf.minimum(current_predict_decode_bbox[:, 2], 1.0),axis=1)
+            clip_current_predict_decode_bbox_xmax  = tf.expand_dims(tf.minimum(current_predict_decode_bbox[:, 3], 1.0),axis=1)
+
+            current_predict_decode_bbox = tf.concat([clip_current_predict_decode_bbox_ymin, clip_current_predict_decode_bbox_xmin, clip_current_predict_decode_bbox_ymax, clip_current_predict_decode_bbox_xmax],axis=1)
+
 
             #计算分类置信度最大的分类 得分
             current_predict_max_object_scores = tf.reduce_max(current_predict_object_label, axis=1)
@@ -187,21 +195,29 @@ class SSD_Net(object):
 
             #如果 object 置信度 > select_threshold 则保留该项目 否则 设置成 0 object的置信度 > select_threshold 其他的为 0.1
             valid_object_scores = tf.where(current_predict_max_object_scores > select_threshold, current_predict_max_object_scores, tf.ones_like(current_predict_max_object_scores) * 0.1)
+            # valid_object_scores = tf.boolean_mask(current_predict_max_object_scores, current_predict_max_object_scores > select_threshold)
+
 
             #保存当前image中的 scores
             score_box = score_box.write(i, valid_object_scores)
 
 
             valid_object_label = tf.where(current_predict_max_object_scores > select_threshold, current_predict_max_object_label, tf.zeros_like(current_predict_max_object_label, dtype=tf.int32))
+            # valid_object_label = tf.boolean_mask(current_predict_max_object_label, current_predict_max_object_scores > select_threshold)
+
             label_out = label_out.write(i, valid_object_label)
 
             #那些无效的box 的相对位置信息 -> [0,0,1,1] scores = 0.1 因此在最终显示的时候 要注意处理下 或者查看输出的label分数
             #有效的box 信息 ymin xmin ymax xmax 的形式 ...
             valid_object_bbox  = tf.where(current_predict_max_object_scores > select_threshold, current_predict_decode_bbox, tf.tile(tf.constant([[0., 0. , 0.001, 0.001]], dtype=tf.float32), multiples=[total_anchor_number, 1]))
+            # valid_object_bbox = tf.boolean_mask(current_predict_decode_bbox, current_predict_max_object_scores > select_threshold)
             box_out = box_out.write(i, valid_object_bbox)
 
             valid_select_index = nms_calculate(valid_object_bbox, valid_object_scores, nms_threshold, total_anchor_number)
+            # valid_select_index = nms_calculate(valid_object_bbox, valid_object_scores, nms_threshold,400)
+
             valid_select_index = tf.sparse_to_dense(valid_select_index, [total_anchor_number], True, False, validate_indices=False)
+            # valid_select_index = tf.sparse_to_dense(valid_select_index, [400], True, False,validate_indices=False)
             select_index = select_index.write(i, valid_select_index)
 
 
@@ -225,7 +241,7 @@ class SSD_Net(object):
         select_index = select_index.stack()
 
 
-        return label_out, box_out, score_box, select_index
+        return label_out, box_out, score_box, select_index, net_out_tesnor
 
 
     def get_graph(self):
