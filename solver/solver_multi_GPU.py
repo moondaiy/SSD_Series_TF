@@ -171,10 +171,10 @@ class Solver_multiple_GPU(object):
             total_classification_loss = self.average_loss(total_classification_loss_list)
             total_loss = self.average_loss(total_loss_list)
 
-            #加入BN层更新,还没有经过测试
+            #加入BN层更新
             update_ops = tf.get_collection(LAYERS_UPDATE_OPS_COLLECTION)
 
-            with tf.control_dependencies(update_ops):
+            with tf.control_dependencies(update_ops + [g for g, _ in grads]):
                 train_op = optimizer.apply_gradients(grads, global_step=self.global_step)
 
             with self.session.as_default() as sess:
