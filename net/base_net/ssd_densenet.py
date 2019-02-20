@@ -198,7 +198,7 @@ class SSD_DenseNet(object):
 
         nets = inputs
         bias = False
-        is_training = True
+        # is_training = True
 
         if normalization_factor != 0:
 
