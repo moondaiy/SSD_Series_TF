@@ -69,9 +69,14 @@ class Solver(object):
 
             with tf.variable_scope("optimizer_vars"):
 
+
                 optimizer = self.get_optimizer()
 
-                train_op = optimizer(learning_rate=self.train_init_learning, momentum = self.momentum).minimize(total_loss, global_step=self.global_step)
+                update_ops = tf.get_collection(LAYERS_UPDATE_OPS_COLLECTION)
+
+                with tf.control_dependencies(update_ops):
+
+                    train_op = optimizer(learning_rate=self.train_init_learning, momentum = self.momentum).minimize(total_loss, global_step=self.global_step)
 
 
             with self.session.as_default() as sess:
